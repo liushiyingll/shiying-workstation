@@ -3463,14 +3463,20 @@ function renderSettings(){
 }
 function exportAllData(){
   const all={};
-  const keys=['bloggers','workoutDB','measurements','bodyPhotosLog','dailyReviews','creative','contentReviews','topics','landlords','buyers','renters','customRewards','fitness_logs','completedTasks','xp','rewards','deviceInfo','weeklyReviews','monthlyReviews','yearlyReviews','negotiationTips','fitness_courses','customKnowledgeCards','bodyPhotos','dietLogs'];
-  keys.forEach(k=>{const v=localStorage.getItem(k);if(v!==null)all[k]=JSON.parse(v);});
+  // 遍历所有localStorage键，确保不漏掉 tasks_*、taskDefs_* 等动态键
+  for(let i=0;i<localStorage.length;i++){
+    const key=localStorage.key(i);
+    try{all[key]=JSON.parse(localStorage.getItem(key));}
+    catch(e){all[key]=localStorage.getItem(key);}
+  }
   all._exportDate=K();
   all._exportTime=new Date().toISOString();
+  all._exportSource='诗颖成长工作台 v7.9 · GitHub Pages';
+  const totalKeys=Object.keys(all).filter(k=>!k.startsWith('_export')).length;
   const blob=new Blob([JSON.stringify(all,null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
   a.download='诗颖工作台-备份-'+K()+'.json';a.click();
-  T('数据已导出: '+K());
+  T('✅ 已导出 '+totalKeys+' 个数据模块: '+K());
 }
 function importAllData(input){
   const file=input.files[0];if(!file)return;
@@ -3478,16 +3484,19 @@ function importAllData(input){
   reader.onload=function(e){
     try{
       const data=JSON.parse(e.target.result);
+      // 只跳过服务类/元数据键，其余全部导入
+      const skipKeys=['_buildVer','_exportDate','_exportTime','_exportSource'];
       let count=0;
       Object.keys(data).forEach(k=>{
-        if(k.startsWith('_'))return;
+        if(skipKeys.includes(k)||k.startsWith('_export'))return;
         localStorage.setItem(k,JSON.stringify(data[k]));
         count++;
       });
-      T('成功导入 '+count+' 个数据模块！刷新页面生效');
+      T('✅ 成功导入 '+count+' 个数据模块！页面即将刷新...');
       setTimeout(()=>location.reload(),1500);
     }catch(err){
-      T('导入失败：文件格式错误');
+      T('❌ 导入失败：文件格式错误，请确认选择了正确的 .json 备份文件');
+      console.error(err);
     }
   };
   reader.readAsText(file);
