@@ -324,8 +324,14 @@ th{background:#eef5f8;font-weight:600;color:var(--text-secondary);font-size:10px
 
 <!-- ==================== HOME ==================== -->
 <div class="page active" id="page-home">
-  <div style="font-size:18px;font-weight:700;margin-bottom:2px">你好，诗颖 👋 <span id="visibleVer" style="font-size:10px;font-weight:400;color:#fff;background:var(--primary);padding:2px 8px;border-radius:10px;vertical-align:middle;margin-left:6px">v7.9</span> <button onclick="location.href=location.pathname+'?v='+Date.now()" style="font-size:9px;padding:2px 6px;border-radius:8px;border:1px solid var(--accent);background:#fff;color:var(--accent);cursor:pointer;vertical-align:middle;margin-left:4px">🔄 强制刷新</button></div>
-  <div style="font-size:11px;color:var(--text-secondary);margin-bottom:14px" id="homeDate"></div>
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:2px">
+    <img id="homeAvatar" src="" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);flex-shrink:0;display:none" alt="头像">
+    <div>
+      <div style="font-size:18px;font-weight:700">你好，诗颖 👋 <span id="visibleVer" style="font-size:10px;font-weight:400;color:#fff;background:var(--primary);padding:2px 8px;border-radius:10px;vertical-align:middle;margin-left:6px">v7.9</span> <button onclick="location.href=location.pathname+'?v='+Date.now()" style="font-size:9px;padding:2px 6px;border-radius:8px;border:1px solid var(--accent);background:#fff;color:var(--accent);cursor:pointer;vertical-align:middle;margin-left:4px">🔄 强制刷新</button></div>
+      <div style="font-size:11px;color:var(--text-secondary)" id="homeDate"></div>
+    </div>
+  </div>
+  <div style="margin-bottom:14px"></div>
   <div class="card" id="reminderBanner" style="display:none;border:2px solid var(--accent);background:linear-gradient(135deg,#f0f5fa,#e4eef5);padding:8px"></div>
   <div class="grid grid-4">
     <div class="card stat-card"><div class="stat-value" id="statXP">0</div><div class="stat-label">累计 XP</div></div>
@@ -451,6 +457,8 @@ th{background:#eef5f8;font-weight:600;color:var(--text-secondary);font-size:10px
   <div class="grid grid-2">
     <div class="card">
       <div class="card-title">📱 设备信息</div>
+      <div class="form-group"><label>头像网址</label><input class="input" id="setAvatarUrl" placeholder="粘贴图片网址"></div>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px"><img id="previewAvatar" src="" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);display:none" alt=""><span id="avatarStatus" style="font-size:11px;color:var(--text-secondary)">未设置</span></div>
       <div class="form-group"><label>设备名称</label><input class="input" id="setDeviceName" placeholder="我的电脑 / 手机 / 平板"></div>
       <div class="form-group"><label>备注</label><input class="input" id="setDeviceNote" placeholder="用来区分不同设备的数据"></div>
       <button class="btn" onclick="saveDeviceInfo()" style="width:100%">💾 保存设备信息</button>
@@ -744,6 +752,11 @@ function updateXPUI(){
 
 // ==================== HOME ====================
 function renderHome(){
+  // 头像
+  const avatarUrl=L.g('userAvatar','');
+  const av=document.getElementById('homeAvatar');
+  if(avatarUrl&&av){av.src=avatarUrl;av.style.display='block';}
+  else if(av){av.style.display='none';}
   document.getElementById('homeDate').textContent=new Date().toLocaleDateString('zh-CN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
   updateXPUI();
   // Today tasks
@@ -3440,10 +3453,21 @@ function seed9090Breathing(){
   }
 }
 function saveDeviceInfo(){
+  const avatarUrl=document.getElementById('setAvatarUrl').value.trim();
+  if(avatarUrl) L.s('userAvatar',avatarUrl);
+  else L.s('userAvatar','');
   const info={name:document.getElementById('setDeviceName').value,note:document.getElementById('setDeviceNote').value};
   L.s('deviceInfo',info);T('设备信息已保存');
+  renderHome();
 }
 function renderSettings(){
+  // 头像
+  const avatarUrl=L.g('userAvatar','');
+  const avIn=document.getElementById('setAvatarUrl');if(avIn)avIn.value=avatarUrl||'';
+  const avPre=document.getElementById('previewAvatar');
+  const avStatus=document.getElementById('avatarStatus');
+  if(avatarUrl&&avPre){avPre.src=avatarUrl;avPre.style.display='block';if(avStatus)avStatus.textContent='已设置';}
+  else if(avPre){avPre.style.display='none';if(avStatus)avStatus.textContent='未设置';}
   // 设备信息
   const di=L.g('deviceInfo',{});
   const dn=document.getElementById('setDeviceName');if(dn)dn.value=di.name||'';
@@ -3533,6 +3557,13 @@ function seedTodayMeasurement(){
     L.s('measurements',ms);
   }
 }
+function seedAvatar(){
+  const existing=L.g('userAvatar','');
+  if(existing)return;
+  const defaultAvatar='https://liushiyingll.github.io/shiying-workstation/avatar/avatar.jpg';
+  L.s('userAvatar',defaultAvatar);
+}
+}
 // 任务操作委托监听（避免 inline onclick 字符串转义）
 document.getElementById('taskContent').addEventListener('click',handleTaskClick);
 try{
@@ -3540,6 +3571,7 @@ seedBloggers();
 seedBloggerVideos();
 seedWorkouts();
 seedTodayMeasurement();
+seedAvatar();
 seed9090Breathing();
 seedAshinWorkouts();
 renderHome();
