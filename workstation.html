@@ -3405,10 +3405,26 @@ function seedWorkouts(){
     {id:'w'+(Date.now()+11),name:'收住肋骨才能收获细腰 10min上身改善',part:'腰部',level:'中级',dur:10,cal:60,author:'欧阳春晓',platform:'B站',url:'https://www.bilibili.com/video/BV1N24y1o7WH/',points:'肋骨外翻改善;核心松散收不住肋骨导致腰围增粗;肩复合体灵活性+胸椎柔韧+雕刻腰线',muscles:'核心、腹横肌、肩部、胸椎',hidden:false},
     {id:'w'+(Date.now()+12),name:'【美丽芭蕾】天鹅臂 15min',part:'手臂',level:'中级',dur:15,cal:70,author:'美丽芭蕾',platform:'B站',url:'https://www.bilibili.com/video/BV1K7411w7kT/',points:'全网最清晰教程;每天15分钟坚持2周见效;经典天鹅臂训练',muscles:'手臂、肩部、上背部、斜方肌中下束',hidden:false},
     {id:'w'+(Date.now()+13),name:'如果解决骨盆前倾 肋骨外翻只能选一个动作—那一定是9090呼吸法！【三腔对位基本功】',part:'腰部',level:'入门',dur:4,cal:20,author:'欧阳春晓Aurora',platform:'B站',url:'https://www.bilibili.com/video/BV1XdrHBSEAM/',points:'仰卧屈膝90度髋膝双脚踩墙大腿垂直地面小腿平行；双脚三点均匀发力脚跟向下搓墙带动骨盆后倾；呼气4-6秒收腹沉肋发出哈声；吸气360度扩张胸腔腹腔避免耸肩顶腰；始终保持胸腔骨盆对位不动核心轻收脖子放松',muscles:'腹横肌、膈肌、盆底肌、核心肌群',hidden:false},
+    {id:'w'+(Date.now()+14),name:'肋骨外翻1000',part:'腰部',level:'中级',dur:10,cal:60,author:'阿新会点健身',platform:'B站',url:'https://www.bilibili.com/video/BV1L1gZzPEfg/',points:'肋骨外翻体态矫正;阿新1000系列;核心收紧+降肋呼吸;10分钟高效跟练',muscles:'核心、腹横肌、膈肌、肋间肌',hidden:false},
+    {id:'w'+(Date.now()+15),name:'死虫式1000正式跟练',part:'核心',level:'中级',dur:23,cal:138,author:'阿新会点健身',platform:'B站',url:'https://www.bilibili.com/video/BV1uUNEzcEwc/',points:'核心力量强化;死虫式经典训练;阿新1000系列;23分钟全程跟练;请量力而行',muscles:'核心、腹横肌、腹直肌、髋屈肌',hidden:false},
   ];
   L.s('workoutDB',workouts);
 }
 // ==================== SETTINGS ====================
+// 一键补种：添加阿新1000系列视频到已有workoutDB（不覆盖现有数据）
+function seedAshinWorkouts(){
+  const list=L.g('workoutDB',[]);
+  if(!list.length)return;
+  const newcomers=[
+    {id:'w_ashin1_'+Date.now(),name:'肋骨外翻1000',part:'腰部',level:'中级',dur:10,cal:60,author:'阿新会点健身',platform:'B站',url:'https://www.bilibili.com/video/BV1L1gZzPEfg/',points:'肋骨外翻体态矫正;阿新1000系列;核心收紧+降肋呼吸;10分钟高效跟练',muscles:'核心、腹横肌、膈肌、肋间肌',hidden:false},
+    {id:'w_ashin2_'+(Date.now()+1),name:'死虫式1000正式跟练',part:'核心',level:'中级',dur:23,cal:138,author:'阿新会点健身',platform:'B站',url:'https://www.bilibili.com/video/BV1uUNEzcEwc/',points:'核心力量强化;死虫式经典训练;阿新1000系列;23分钟全程跟练;请量力而行',muscles:'核心、腹横肌、腹直肌、髋屈肌',hidden:false},
+  ];
+  let added=0;
+  newcomers.forEach(w=>{
+    if(!list.some(e=>e.url&&e.url.includes(w.url.split('/').pop()))){list.push(w);added++;}
+  });
+  if(added){L.s('workoutDB',list);T('已添加 '+added+' 个阿新1000系列视频');}
+}
 // 一键补种：添加9090呼吸法视频到已有workoutDB（不覆盖现有数据）
 function seed9090Breathing(){
   const list=L.g('workoutDB',[]);
@@ -3521,6 +3537,7 @@ seedBloggerVideos();
 seedWorkouts();
 seedTodayMeasurement();
 seed9090Breathing();
+seedAshinWorkouts();
 renderHome();
 updateXPUI();
 }catch(e){window.onerror(e.message,'init',0,0,e);}
