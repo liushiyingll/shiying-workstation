@@ -273,7 +273,7 @@ th{background:#eef5f8;font-weight:600;color:var(--text-secondary);font-size:10px
 <script>
 // v7.9 版本自检：自动清除旧缓存，强制加载最新版
 (function(){
-  var BUILD='v7.9-20260730b';
+  var BUILD='v7.9-20260730c';
   var last=localStorage.getItem('_buildVer');
   // 如果URL中有旧版本参数或没有版本参数但本地版本是旧的，强制刷新
   if(last===BUILD) return; // 已是最新，无需操作
@@ -283,8 +283,6 @@ th{background:#eef5f8;font-weight:600;color:var(--text-secondary);font-size:10px
   if(marketItems){
     try{var m=JSON.parse(marketItems);if(m.length>0&&m[0].content&&m[0].content.indexOf('均价')>-1){localStorage.removeItem('marketItems');}}catch(e){}
   }
-  localStorage.removeItem('topics');
-  localStorage.removeItem('bloggers');
   // 强制重新加载最新版本（带时间戳参数防止缓存）
   if(last){
     location.replace(location.pathname+'?v='+Date.now());
