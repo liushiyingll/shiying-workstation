@@ -274,21 +274,27 @@ th{background:#eef5f8;font-weight:600;color:var(--text-secondary);font-size:10px
 </head>
 <body>
 <script>
-// v7.9 版本自检：自动清除旧缓存，强制加载最新版
+// v7.9 版本自检：自动清除旧缓存，安全升级（不丢失数据）
 (function(){
   var BUILD='v7.9-20260731';
   var last=localStorage.getItem('_buildVer');
-  // 如果URL中有旧版本参数或没有版本参数但本地版本是旧的，强制刷新
-  if(last===BUILD) return; // 已是最新，无需操作
+  if(last===BUILD) return;
+  // 版本更新前自动备份数据快照
+  try{
+    var snapshot={};
+    for(var i=0;i<localStorage.length;i++){
+      var k=localStorage.key(i);
+      if(k==='_buildVer'||k==='_backupSnapshot')continue;
+      try{snapshot[k]=JSON.parse(localStorage.getItem(k));}catch(e){snapshot[k]=localStorage.getItem(k);}
+    }
+    snapshot._backupDate=new Date().toISOString();
+    localStorage.setItem('_backupSnapshot',JSON.stringify(snapshot));
+  }catch(e){}
   localStorage.setItem('_buildVer',BUILD);
   // 清除可能导致数据不一致的旧缓存
   var marketItems=localStorage.getItem('marketItems');
   if(marketItems){
     try{var m=JSON.parse(marketItems);if(m.length>0&&m[0].content&&m[0].content.indexOf('均价')>-1){localStorage.removeItem('marketItems');}}catch(e){}
-  }
-  // 强制重新加载最新版本（带时间戳参数防止缓存）
-  if(last){
-    location.replace(location.pathname+'?v='+Date.now());
   }
 })();
 </script>
@@ -336,6 +342,16 @@ th{background:#eef5f8;font-weight:600;color:var(--text-secondary);font-size:10px
   </div>
   <div style="margin-bottom:14px"></div>
   <div class="card" id="reminderBanner" style="display:none;border:2px solid var(--accent);background:linear-gradient(135deg,#f0f5fa,#e4eef5);padding:8px"></div>
+  <div class="card" id="backupBanner" style="display:none;border:2px solid var(--secondary);background:linear-gradient(135deg,#e8f4f0,#e4eef5);padding:10px;cursor:pointer" onclick="doDailyBackup()">
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:20px">💾</span>
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:600;color:var(--secondary)">今日数据备份</div>
+        <div style="font-size:10px;color:var(--text-secondary)">点击下载备份文件，防止数据丢失</div>
+      </div>
+      <span style="font-size:14px">📥</span>
+    </div>
+  </div>
   <div class="grid grid-4">
     <div class="card stat-card"><div class="stat-value" id="statXP">0</div><div class="stat-label">累计 XP</div></div>
     <div class="card stat-card"><div class="stat-value" id="statLevel">Lv.1</div><div class="stat-label">当前等级</div></div>
@@ -810,6 +826,7 @@ function renderHome(){
   // Smart reminders
   renderReminderBanner();
   checkAndNotify();
+  checkDailyBackup();
 }
 // ==================== SMART REMINDERS ====================
 function getReminders(){
@@ -3556,6 +3573,32 @@ function clearAllData(){
   localStorage.clear();
   T('所有数据已清除，页面即将刷新');
   setTimeout(()=>location.reload(),1000);
+}
+// ==================== 自动备份 ====================
+function doDailyBackup(){
+  var all={};
+  for(var i=0;i<localStorage.length;i++){
+    var k=localStorage.key(i);
+    if(k==='_buildVer'||k==='_backupSnapshot')continue;
+    try{all[k]=JSON.parse(localStorage.getItem(k));}catch(e){}
+  }
+  all._backupDate=K();
+  all._backupTime=new Date().toISOString();
+  var blob=new Blob([JSON.stringify(all,null,2)],{type:'application/json'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='诗颖工作台-备份-'+K()+'.json';
+  a.click();
+  localStorage.setItem('_lastBackupDate',K());
+  document.getElementById('backupBanner').style.display='none';
+  T('✅ 备份已下载！建议保存到手机文件或云端');
+}
+function checkDailyBackup(){
+  var lastBackup=localStorage.getItem('_lastBackupDate');
+  if(lastBackup!==K()){
+    var banner=document.getElementById('backupBanner');
+    if(banner)banner.style.display='block';
+  }
 }
 // ==================== INIT ====================
 function seedTodayMeasurement(){
