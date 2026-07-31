@@ -262,14 +262,14 @@ th{background:#eef5f8;font-weight:600;color:var(--text-secondary);font-size:10px
     justify-content:center;
     width:calc(100% - 8px);
     border-radius:10px;
+    font-size:0;
   }
-  .sidebar .nav-item span:not(.nav-icon){display:none}
-  .sidebar .nav-icon{font-size:18px}
+  .sidebar .nav-item .nav-icon{font-size:18px}
   .sidebar .nav-divider{display:none}
   .sidebar .nav-bottom{
     display:flex!important;
     flex-direction:column;
-    margin-top:auto;
+    margin-top:4px;
     padding:4px;
     border-top:1px solid var(--border);
   }
@@ -302,7 +302,7 @@ th{background:#eef5f8;font-weight:600;color:var(--text-secondary);font-size:10px
 <script>
 // v7.9 版本自检：自动清除旧缓存，安全升级（不丢失数据）
 (function(){
-  var BUILD='v7.9-20260731d';
+  var BUILD='v7.9-20260731e';
   var last=localStorage.getItem('_buildVer');
   if(last===BUILD) return;
   // 版本更新前自动备份数据快照
