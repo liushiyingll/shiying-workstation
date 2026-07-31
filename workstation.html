@@ -992,7 +992,7 @@ function renderStreakMilestones(){
 }
 
 // ==================== RADAR (DYNAMIC + HOVER) ====================
-const RADAR_CAPS={房源知识:350,客户拓展:350,自媒体:350,沟通表达:300,市场分析:300,健身:100};
+const RADAR_CAPS={房源知识:350,客户拓展:350,自媒体:350,沟通表达:300,市场分析:300,健身:30};
 const MODULE_KEY_MAP={房源知识:'house',客户拓展:'clients',自媒体:'media',沟通表达:'communicate',市场分析:'market'};
 let radarPoints=[],radarHoverIdx=-1,radarDate='';
 
@@ -1029,11 +1029,11 @@ function calcModuleXP(module,dateStr){
 function calcFitnessVal(dateStr){
   if(dateStr){
     const totalXP=(L.g('workouts',[])||[]).filter(l=>l.date&&l.date.slice(0,10)===dateStr).reduce((s,l)=>s+(l.xp||0),0);
-    return Math.min(1,totalXP/100);
+    return Math.min(1,totalXP/30);
   }
   const weekAgo=new Date();weekAgo.setDate(weekAgo.getDate()-7);
   const totalXP=(L.g('workouts',[])||[]).filter(l=>new Date(l.date)>=weekAgo).reduce((s,l)=>s+(l.xp||0),0);
-  return Math.min(1,totalXP/100);
+  return Math.min(1,totalXP/30);
 }
 
 function drawRadar(dateStr){
@@ -2733,8 +2733,8 @@ function toggleTimer(){
 }
 function stopTimer(){if(timer){clearInterval(timer);timer=null;}timerSec=0;}
 function getWorkoutXP(level){
-  const map={'\u5165\u95e8':5,'\u521d\u7ea7':10,'\u4e2d\u7ea7':15,'\u9ad8\u7ea7':20};
-  return map[level]||5;
+  const map={'\u5165\u95e8':1,'\u521d\u7ea7':2,'\u4e2d\u7ea7':3,'\u9ad8\u7ea7':5};
+  return map[level]||1;
 }
 function finishWorkout(id){
   if(!wkActive)return;stopTimer();closeM();
