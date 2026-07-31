@@ -992,7 +992,7 @@ function renderStreakMilestones(){
 }
 
 // ==================== RADAR (DYNAMIC + HOVER) ====================
-const RADAR_CAPS={房源知识:350,客户拓展:350,自媒体:350,沟通表达:300,市场分析:300,健身:30};
+const RADAR_CAPS={房源知识:350,客户拓展:350,自媒体:350,沟通表达:300,市场分析:300,健身:50};
 const MODULE_KEY_MAP={房源知识:'house',客户拓展:'clients',自媒体:'media',沟通表达:'communicate',市场分析:'market'};
 let radarPoints=[],radarHoverIdx=-1,radarDate='';
 
@@ -1029,11 +1029,11 @@ function calcModuleXP(module,dateStr){
 function calcFitnessVal(dateStr){
   if(dateStr){
     const totalXP=(L.g('workouts',[])||[]).filter(l=>l.date&&l.date.slice(0,10)===dateStr).reduce((s,l)=>s+(l.xp||0),0);
-    return Math.min(1,totalXP/30);
+    return Math.min(1,totalXP/50);
   }
   const weekAgo=new Date();weekAgo.setDate(weekAgo.getDate()-7);
   const totalXP=(L.g('workouts',[])||[]).filter(l=>new Date(l.date)>=weekAgo).reduce((s,l)=>s+(l.xp||0),0);
-  return Math.min(1,totalXP/30);
+  return Math.min(1,totalXP/50);
 }
 
 function drawRadar(dateStr){
