@@ -276,7 +276,7 @@ th{background:#eef5f8;font-weight:600;color:var(--text-secondary);font-size:10px
 <script>
 // v7.9 版本自检：自动清除旧缓存，安全升级（不丢失数据）
 (function(){
-  var BUILD='v7.9-20260731';
+  var BUILD='v7.9-20260731c';
   var last=localStorage.getItem('_buildVer');
   if(last===BUILD) return;
   // 版本更新前自动备份数据快照
@@ -342,6 +342,25 @@ th{background:#eef5f8;font-weight:600;color:var(--text-secondary);font-size:10px
   </div>
   <div style="margin-bottom:14px"></div>
   <div class="card" id="reminderBanner" style="display:none;border:2px solid var(--accent);background:linear-gradient(135deg,#f0f5fa,#e4eef5);padding:8px"></div>
+  <div class="card" id="recoveryBanner" style="display:none;border:2px solid #f59e0b;background:linear-gradient(135deg,#fffbeb,#fef3c7);padding:10px;cursor:pointer" onclick="showRecoveryModal()">
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:20px">🔄</span>
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:600;color:#b45309">发现数据备份快照！</div>
+        <div style="font-size:10px;color:var(--text-secondary)" id="recoveryDate">点击查看并恢复数据</div>
+      </div>
+      <span style="font-size:14px">▶</span>
+    </div>
+  </div>
+  <div class="card" id="noDataBanner" style="display:none;border:2px solid var(--accent);background:linear-gradient(135deg,#f0f5fa,#e4eef5);padding:10px">
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:20px">📋</span>
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:600;color:var(--accent)">数据恢复提示</div>
+        <div style="font-size:10px;color:var(--text-secondary)">你的历史数据（勾选记录、XP、任务等）可能可通过备份恢复，<a href="javascript:showRecoveryModal()" style="color:var(--accent);font-weight:600">点击查看</a></div>
+      </div>
+    </div>
+  </div>
   <div class="card" id="backupBanner" style="display:none;border:2px solid var(--secondary);background:linear-gradient(135deg,#e8f4f0,#e4eef5);padding:10px;cursor:pointer" onclick="doDailyBackup()">
     <div style="display:flex;align-items:center;gap:8px">
       <span style="font-size:20px">💾</span>
@@ -486,6 +505,13 @@ th{background:#eef5f8;font-weight:600;color:var(--text-secondary);font-size:10px
       <div class="card-title">📊 数据统计</div>
       <div id="dataStats" style="font-size:12px;line-height:2">加载中...</div>
     </div>
+  </div>
+
+  <div class="card" style="margin-top:12px;border-color:#f59e0b" id="settingsRecoveryCard" style="display:none">
+    <div class="card-title" style="color:#b45309">🔄 历史数据恢复</div>
+    <div style="font-size:10px;color:var(--text-secondary);margin-bottom:10px">系统在版本更新时自动保存数据快照。如发现可恢复的备份，可在此恢复。</div>
+    <div id="settingsRecoveryInfo" style="font-size:10px;color:var(--text-secondary);margin-bottom:10px">正在检查备份...</div>
+    <button class="btn" onclick="showRecoveryModal()" id="settingsRecoveryBtn" style="background:#f59e0b;color:#fff">🔍 检查并恢复备份</button>
   </div>
 
   <div class="card" style="margin-top:12px">
@@ -3600,6 +3626,191 @@ function checkDailyBackup(){
     if(banner)banner.style.display='block';
   }
 }
+// ==================== 数据恢复 ====================
+function checkBackupSnapshot(){
+  try{
+    var raw=localStorage.getItem('_backupSnapshot');
+    if(!raw){return false;}
+    var snapshot=JSON.parse(raw);
+    // 检查是否有实质数据（排除元数据键）
+    var keys=Object.keys(snapshot).filter(function(k){return !k.startsWith('_');});
+    if(keys.length===0){return false;}
+    // 显示恢复横幅
+    var banner=document.getElementById('recoveryBanner');
+    if(banner){
+      var d=snapshot._backupDate||'未知';
+      document.getElementById('recoveryDate').textContent='备份时间：'+formatBackupDate(d)+' · '+keys.length+'个数据模块';
+      banner.style.display='block';
+    }
+    // 无数据提醒也显示
+    var nb=document.getElementById('noDataBanner');
+    if(nb)nb.style.display='none';
+    return true;
+  }catch(e){return false;}
+}
+function formatBackupDate(d){
+  try{var dt=new Date(d);return dt.toLocaleDateString('zh-CN',{year:'numeric',month:'2-digit',day:'2-digit'})+' '+dt.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});}
+  catch(e){return d;}
+}
+function hasBackupSnapshot(){
+  try{
+    var raw=localStorage.getItem('_backupSnapshot');
+    if(!raw)return false;
+    var snapshot=JSON.parse(raw);
+    var keys=Object.keys(snapshot).filter(function(k){return !k.startsWith('_');});
+    return keys.length>0;
+  }catch(e){return false;}
+}
+function showRecoveryModal(){
+  var html='';
+  try{
+    var raw=localStorage.getItem('_backupSnapshot');
+    var hasSnapshot=!!raw;
+    var snapshot=hasSnapshot?JSON.parse(raw):null;
+    var keys=hasSnapshot?Object.keys(snapshot).filter(function(k){return !k.startsWith('_');}):[];
+    var hasData=keys.length>0;
+    
+    // 数据统计（当前localStorage）
+    var currentKeys=0;
+    for(var i=0;i<localStorage.length;i++){
+      var k=localStorage.key(i);
+      if(!k.startsWith('_'))currentKeys++;
+    }
+    
+    html='<div class="modal-overlay" id="recoveryOverlay" onclick="if(event.target===this)closeM()">';
+    html+='<div class="modal" style="max-width:500px">';
+    html+='<div class="modal-title">🔄 数据恢复中心</div>';
+    
+    if(hasData){
+      html+='<div style="background:#fffbeb;border:1.5px solid #f59e0b;border-radius:8px;padding:12px;margin-bottom:12px">';
+      html+='<div style="font-weight:600;color:#b45309;margin-bottom:4px">🎯 发现备份快照！</div>';
+      html+='<div style="font-size:11px;color:var(--text-secondary)">备份时间：<b>'+formatBackupDate(snapshot._backupDate||'未知')+'</b></div>';
+      html+='<div style="font-size:11px;color:var(--text-secondary)">包含 <b>'+keys.length+'</b> 个数据模块</div>';
+      html+='</div>';
+      
+      html+='<div style="font-size:12px;font-weight:600;margin-bottom:6px">备份中的数据模块：</div>';
+      html+='<div style="max-height:200px;overflow-y:auto;margin-bottom:12px;font-size:10px;line-height:1.8;background:var(--bg);border-radius:8px;padding:8px">';
+      var labels={xp:'经验值(XP)',xpLog:'XP记录',tasks:'今日任务',taskDefs_day:'每日任务模板',taskDefs_week:'每周任务模板',taskDefs_month:'每月任务模板',taskDefs_habits:'习惯打卡',reviews:'复盘记录',clients:'客户信息',landlords:'房东信息',workoutLog:'健身记录',workoutDB:'健身跟练库',bloggers:'博主列表',bloggerVideos:'博主视频',measurements:'身体数据',customRewards:'自定义激励',negotiationSkills:'谈判技巧',userAvatar:'头像设置',dashboardLayout:'首页布局'};
+      for(var j=0;j<keys.length;j++){
+        var k2=keys[j];
+        var label=labels[k2]||k2;
+        var val=snapshot[k2];
+        var count='';
+        if(Array.isArray(val))count=' ('+val.length+'条)';
+        else if(typeof val==='object'&&val!==null)count=' ('+Object.keys(val).length+'项)';
+        html+='<div>📦 '+label+'<span style="color:var(--text-secondary)">'+count+'</span></div>';
+      }
+      html+='</div>';
+      
+      html+='<div style="font-size:11px;color:var(--text-secondary);margin-bottom:12px;background:#f0fdf4;border-radius:8px;padding:8px">';
+      html+='💡 <b>提示：</b>当前页面已有 '+currentKeys+' 个数据模块。恢复备份会<b>覆盖同名数据</b>，但不影响备份中没有的数据。';
+      html+='</div>';
+      
+      html+='<div style="display:flex;gap:8px;flex-wrap:wrap">';
+      html+='<button class="btn" onclick="doRestoreSnapshot(\'merge\')" style="flex:1;min-width:140px;background:#f59e0b;color:#fff">🔄 合并恢复<br><span style="font-size:9px;opacity:.8">有则覆盖，无则保留</span></button>';
+      html+='<button class="btn" onclick="doRestoreSnapshot(\'full\')" style="flex:1;min-width:140px;background:#dc2626;color:#fff">⚠️ 完全替换<br><span style="font-size:9px;opacity:.8">清空当前，恢复全部</span></button>';
+      html+='<button class="btn btn-secondary" onclick="closeM()" style="flex:1;min-width:100px">关闭</button>';
+      html+='</div>';
+    }else if(hasSnapshot){
+      html+='<div style="background:#f0fdf4;border:1.5px solid #16a34a;border-radius:8px;padding:12px;margin-bottom:12px">';
+      html+='<div style="font-weight:600;color:#16a34a;margin-bottom:4px">✅ 数据完好</div>';
+      html+='<div style="font-size:11px;color:var(--text-secondary)">当前所有数据模块都在正常运行中，无需恢复。</div>';
+      html+='</div>';
+      html+='<div style="text-align:center"><button class="btn btn-secondary" onclick="closeM()">关闭</button></div>';
+    }else{
+      html+='<div style="background:#fef2f2;border:1.5px solid #dc2626;border-radius:8px;padding:12px;margin-bottom:12px;text-align:center">';
+      html+='<div style="font-size:36px;margin-bottom:8px">📭</div>';
+      html+='<div style="font-weight:600;color:#dc2626;margin-bottom:4px">未找到备份快照</div>';
+      html+='<div style="font-size:11px;color:var(--text-secondary);line-height:1.6;text-align:left;margin-top:8px">';
+      html+='备份快照是系统在版本更新时自动创建的。<b>可能的原因：</b><br>';
+      html+='1. 数据丢失发生在备份功能添加之前<br>';
+      html+='2. 浏览器缓存被清除<br>';
+      html+='3. 切换了浏览器或设备<br>';
+      html+='<b>建议：</b>今后请定期使用"导出备份"功能保存数据到手机文件。';
+      html+='</div>';
+      html+='</div>';
+      html+='<div style="text-align:center"><button class="btn btn-secondary" onclick="closeM()">我知道了</button></div>';
+    }
+    
+    html+='</div></div>';
+  }catch(e){
+    html='<div class="modal-overlay" id="recoveryOverlay" onclick="if(event.target===this)closeM()"><div class="modal" style="max-width:340px;text-align:center"><div style="font-size:14px;margin-bottom:16px">读取备份数据时出错</div><div style="font-size:11px;color:var(--text-secondary);margin-bottom:12px">'+e.message+'</div><button class="btn btn-secondary" onclick="closeM()">关闭</button></div></div>';
+  }
+  document.body.insertAdjacentHTML('beforeend',html);
+}
+function doRestoreSnapshot(mode){
+  try{
+    var raw=localStorage.getItem('_backupSnapshot');
+    if(!raw){T('未找到备份快照');closeM();return;}
+    var snapshot=JSON.parse(raw);
+    var keys=Object.keys(snapshot).filter(function(k){return !k.startsWith('_');});
+    
+    if(mode==='full'){
+      // 完全替换模式：先备份当前数据，再清空
+      var currentBackup={};
+      for(var i=0;i<localStorage.length;i++){
+        var ck=localStorage.key(i);
+        if(ck==='_buildVer'||ck==='_backupSnapshot')continue;
+        try{currentBackup[ck]=JSON.parse(localStorage.getItem(ck));}catch(e){}
+      }
+      currentBackup._backupDate=new Date().toISOString();
+      localStorage.setItem('_backupSnapshot',JSON.stringify(currentBackup));
+      
+      // 清空当前数据（保留_buildVer和_backupSnapshot）
+      var toRemove=[];
+      for(var j=0;j<localStorage.length;j++){
+        var rk=localStorage.key(j);
+        if(rk!=='_buildVer'&&rk!=='_backupSnapshot')toRemove.push(rk);
+      }
+      for(var m=0;m<toRemove.length;m++){localStorage.removeItem(toRemove[m]);}
+      
+      // 恢复备份数据
+      var count=0;
+      for(var n=0;n<keys.length;n++){
+        localStorage.setItem(keys[n],JSON.stringify(snapshot[keys[n]]));
+        count++;
+      }
+      T('✅ 已完全恢复 '+count+' 个数据模块！页面即将刷新...');
+    }else{
+      // 合并恢复模式：有则覆盖
+      var count2=0;
+      for(var p=0;p<keys.length;p++){
+        localStorage.setItem(keys[p],JSON.stringify(snapshot[keys[p]]));
+        count2++;
+      }
+      T('✅ 已合并恢复 '+count2+' 个数据模块！页面即将刷新...');
+    }
+    closeM();
+    setTimeout(function(){location.reload();},1500);
+  }catch(e){
+    T('❌ 恢复失败：'+e.message);
+    closeM();
+  }
+}
+function updateSettingsRecoveryInfo(){
+  var card=document.getElementById('settingsRecoveryCard');
+  var info=document.getElementById('settingsRecoveryInfo');
+  var btn=document.getElementById('settingsRecoveryBtn');
+  if(!card||!info||!btn)return;
+  card.style.display='block';
+  if(hasBackupSnapshot()){
+    try{
+      var snapshot=JSON.parse(localStorage.getItem('_backupSnapshot'));
+      var keys=Object.keys(snapshot).filter(function(k){return !k.startsWith('_');});
+      info.innerHTML='<span style="color:#b45309;font-weight:600">🟡 发现备份快照</span> · '+formatBackupDate(snapshot._backupDate)+' · '+keys.length+'个模块';
+      btn.textContent='🔄 查看并恢复备份';
+      btn.style.background='#f59e0b';btn.style.color='#fff';
+    }catch(e){
+      info.innerHTML='<span style="color:#16a34a;font-weight:600">🟢 数据正常</span> · 无需恢复';
+      btn.textContent='🔍 检查备份状态';
+      btn.style.background='';btn.style.color='';
+    }
+  }else{
+    info.innerHTML='<span style="color:#dc2626;font-weight:600">🔴 未找到备份快照</span> · 数据丢失前未创建自动备份';
+    btn.textContent='📋 查看详情';
+    btn.style.background='';btn.style.color='';
+  }
+}
 // ==================== INIT ====================
 function seedTodayMeasurement(){
   const ms=L.g('measurements',[]);
@@ -3627,6 +3838,16 @@ seed9090Breathing();
 seedAshinWorkouts();
 renderHome();
 updateXPUI();
+checkBackupSnapshot();
+checkDailyBackup();
+// 后续在设置页渲染时更新恢复状态
+(function(){
+  var origSwitchPage=switchPage;
+  switchPage=function(p){
+    origSwitchPage(p);
+    if(p==='settings'){setTimeout(updateSettingsRecoveryInfo,300);}
+  };
+})();
 }catch(e){window.onerror(e.message,'init',0,0,e);}
 </script>
 </body>
