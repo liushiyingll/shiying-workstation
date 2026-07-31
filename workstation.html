@@ -273,7 +273,7 @@ th{background:#eef5f8;font-weight:600;color:var(--text-secondary);font-size:10px
 <script>
 // v7.9 版本自检：自动清除旧缓存，强制加载最新版
 (function(){
-  var BUILD='v7.9-20260730c';
+  var BUILD='v7.9-20260731';
   var last=localStorage.getItem('_buildVer');
   // 如果URL中有旧版本参数或没有版本参数但本地版本是旧的，强制刷新
   if(last===BUILD) return; // 已是最新，无需操作
@@ -1452,10 +1452,14 @@ function toggleTask(id,xp,name,period){
   renderTasks();renderHome();
 }
 function openTaskModal(){
-  const opts=TASK_MODULES.filter(m=>m.key!=='all').map(m=>`<option value="${m.key}"${taskModule===m.key?' selected':''}>${m.name}</option>`).join('');
+  const isHabits=taskTab==='habits';
+  const modules=[...TASK_MODULES.filter(m=>m.key!=='all').map(m=>({...m}))];
+  if(isHabits)modules.push({key:'habits',name:'习惯'}); // 习惯打卡页允许选择习惯模块
+  const opts=modules.map(m=>`<option value="${m.key}"${(isHabits?'habits':taskModule)===m.key?' selected':''}>${m.name}</option>`).join('');
+  const selPeriod=isHabits?'habits':'daily';
   const html=`<div class="modal-overlay" onclick="if(event.target===this)closeM()"><div class="modal"><div class="modal-title">+ 新建任务</div>
     <div class="form-row"><div class="form-group"><label>任务名称</label><input class="input" id="tName"></div><div class="form-group"><label>XP奖励</label><input type="number" class="input" id="tXP" value="10"></div></div>
-    <div class="form-row"><div class="form-group"><label>技能模块</label><select class="select" id="tModule">${opts}</select></div><div class="form-group"><label>周期</label><select class="select" id="tPeriod"><option>daily</option><option>weekly</option><option>monthly</option><option>habits</option></select></div></div>
+    <div class="form-row"><div class="form-group"><label>技能模块</label><select class="select" id="tModule">${opts}</select></div><div class="form-group"><label>周期</label><select class="select" id="tPeriod"><option ${selPeriod==='daily'?'selected':''}>daily</option><option ${selPeriod==='weekly'?'selected':''}>weekly</option><option ${selPeriod==='monthly'?'selected':''}>monthly</option><option ${selPeriod==='habits'?'selected':''}>habits</option></select></div></div>
     <div class="form-group"><label>标签(逗号分隔)</label><input class="input" id="tTags" placeholder="入门,房源知识"></div>
     <div class="modal-footer"><button class="btn btn-secondary" onclick="closeM()">取消</button><button class="btn" onclick="saveTask()">保存</button></div></div></div>`;
   document.body.insertAdjacentHTML('beforeend',html);
