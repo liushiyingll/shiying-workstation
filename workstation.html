@@ -1267,7 +1267,7 @@ const TASK_DEFS={
     {id:'mkt_m1',name:'完成月度武汉区域市场报告（含数据+趋势+建议）',xp:50,tag:'产出',tags:['市场分析','挑战']}
   ]
 };
-function getTaskDefs(s,p){return L.g('taskDefs_'+s+'_'+p,TASK_DEFS[s+'-'+p]||[]);}
+function getTaskDefs(s,p){if(p==='habits')return L.g('taskDefs_habits',TASK_DEFS['habits']||[]);return L.g('taskDefs_'+s+'_'+p,TASK_DEFS[s+'-'+p]||[]);}
 // 技能模块任务分组
 const TASK_MODULES=[
   {key:'all',name:'全部',color:'#006296'},
@@ -1290,7 +1290,7 @@ function getAllTaskDefs(period){
   }
   return all;
 }
-function saveTaskDefs(s,p,d){L.s('taskDefs_'+s+'_'+p,d);}
+function saveTaskDefs(s,p,d){if(p==='habits')L.s('taskDefs_habits',d);else L.s('taskDefs_'+s+'_'+p,d);}
 
 // 根据周期返回存储key：daily→按日, weekly→按周, monthly→按月
 function getPeriodKey(period){
@@ -1313,6 +1313,7 @@ function getWeekLabel(){const d=new Date();const s=new Date(d.getFullYear(),0,1)
 
 // 在全部模块视图下查找任务所属的真实模块
 function findTaskDefById(taskId,period){
+  if(period==='habits'){const defs=getTaskDefs('habits','habits');return defs.some(t=>t.id===taskId)?'habits':null;}
   const modules=['realtor','house','clients','media','communicate','market'];
   for(const mod of modules){const defs=getTaskDefs(mod,period);if(defs.some(t=>t.id===taskId))return mod;}
   return null;
@@ -1415,7 +1416,7 @@ function handleTaskClick(e){
     const taskName=label?label.textContent:'此任务';
     if(!confirm('确认删除「'+taskName+'」？'))return;
     try{
-      let actualMod=mod;
+      let actualMod=period==='habits'?'habits':mod;
       if(!actualMod||actualMod==='all'||!getTaskDefs(actualMod,period).some(t=>t.id===taskId)){
         const found=findTaskDefById(taskId,period);
         if(found)actualMod=found;
@@ -1461,6 +1462,7 @@ function openTaskModal(){
 }
 // 编辑已有任务
 function openTaskEditModal(period, module, taskId){
+  if(period==='habits')module='habits';
   const actualMod=(module==='all')?findTaskDefById(taskId,period):module;
   if(!actualMod){T('任务不属于任何模块');return;}
   const defs=getTaskDefs(actualMod,period);
