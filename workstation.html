@@ -306,7 +306,7 @@ th{background:#eef5f8;font-weight:600;color:var(--text-secondary);font-size:10px
 <script>
 // v7.9 版本自检：自动清除旧缓存，安全升级（不丢失数据）
 (function(){
-  var BUILD='v7.9-20260801a';
+  var BUILD='v7.9-20260801b';
   var last=localStorage.getItem('_buildVer');
   if(last===BUILD) return;
   // 版本更新前自动备份数据快照
@@ -815,13 +815,21 @@ function logXP(amount,source,detail){
   log.push({date:K(),amount,source,detail:detail||'',ts:Date.now()});
   L.s('xpLog',log);
 }
+// ==================== PROGRESSIVE LEVEL SYSTEM ====================
+// 累计XP到达等级lv所需总量：lv=1返回0，lv=2返回300，lv=3返回700...
+// 公式：(lv-1)*(50*lv+200) → 每级递增100XP
+//   Lv2:300  Lv3:700  Lv4:1200  Lv5:1800  Lv6:2500  Lv7:3300  Lv8:4200  Lv9:5200  Lv10:6300
+function xpForLevel(lv){if(lv<=1)return 0;return (lv-1)*(50*lv+200);}
+function levelFromXP(totalXP){var lv=1;while(xpForLevel(lv+1)<=totalXP)lv++;return lv;}
+function xpIntoLevel(totalXP){return totalXP-xpForLevel(levelFromXP(totalXP));}
+function xpForNextLevel(totalXP){var lv=levelFromXP(totalXP);return xpForLevel(lv+1)-xpForLevel(lv);}
 function updateXPUI(){
-  const xp=L.g('xp',0),lv=Math.floor(xp/300)+1,nxp=(lv*300)-xp,pct=((xp-(lv-1)*300)/300*100).toFixed(0);
+  const xp=L.g('xp',0),lv=levelFromXP(xp),need=xpForNextLevel(xp),into=xpIntoLevel(xp),pct=(into/need*100).toFixed(0);
   ['statXP','gXP'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=xp;});
   ['statLevel','gLevel'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent='Lv.'+lv;});
   const sl=document.getElementById('statLevel');if(sl)sl.textContent='Lv.'+lv;
   const xb=document.getElementById('xpBar');if(xb)xb.style.width=pct+'%';
-  const xl=document.getElementById('xpLabel');if(xl)xl.textContent=(xp-(lv-1)*300)+' / 300 XP';
+  const xl=document.getElementById('xpLabel');if(xl)xl.textContent=into+' / '+need+' XP';
 }
 
 // ==================== HOME ====================
@@ -1734,11 +1742,11 @@ function renderRealtor(){
   else if(realtorTab==='commission')renderCommission(el);
 }
 function renderRoadmap(el){
-  const xp=L.g('xp',0),lv=Math.floor(xp/300)+1;
+  const xp=L.g('xp',0),lv=levelFromXP(xp);
   const phases=[
-    {name:'阶段一：入门扎根',badge:lv>=1?'active':lv===0?'active':'done',color:'#006296',xpReq:'0-900 XP（Lv.1-3）',desc:'熟悉武汉核心区域（光谷/江汉/武昌/汉阳/黄陂）房价/户型/配套；完成经纪人资格证；加入本地房产社群；每天记忆10+房源信息。',minXP:0,maxXP:900},
-    {name:'阶段二：专业提升',badge:xp>=900?'active':xp>=0?'upcoming':'upcoming',color:xp>=900?'#3E8874':'#5a7a8a',xpReq:'900-2700 XP（Lv.4-9）',desc:'建立第一批房东/客户资源；月带看20+组；学习自媒体运营（抖音/小红书）；掌握签约谈判全流程。',minXP:900,maxXP:2700},
-    {name:'阶段三：品牌建立',badge:xp>=2700?'active':xp>=0?'upcoming':'upcoming',color:xp>=2700?'#B3864E':'#5a7a8a',xpReq:'2700+ XP（Lv.10+）',desc:'打造个人IP品牌；月稳定成交3+单；建立客户转介绍体系；考虑组建小团队。',minXP:2700,maxXP:99999}
+    {name:'阶段一：入门扎根',badge:lv>=1?'active':lv===0?'active':'done',color:'#006296',xpReq:'0-700 XP（Lv.1-3）',desc:'熟悉武汉核心区域（光谷/江汉/武昌/汉阳/黄陂）房价/户型/配套；完成经纪人资格证；加入本地房产社群；每天记忆10+房源信息。',minXP:0,maxXP:700},
+    {name:'阶段二：专业提升',badge:xp>=700?'active':xp>=0?'upcoming':'upcoming',color:xp>=700?'#3E8874':'#5a7a8a',xpReq:'700-5200 XP（Lv.4-9）',desc:'建立第一批房东/客户资源；月带看20+组；学习自媒体运营（抖音/小红书）；掌握签约谈判全流程。',minXP:700,maxXP:5200},
+    {name:'阶段三：品牌建立',badge:xp>=5200?'active':xp>=0?'upcoming':'upcoming',color:xp>=5200?'#B3864E':'#5a7a8a',xpReq:'5200+ XP（Lv.10+）',desc:'打造个人IP品牌；月稳定成交3+单；建立客户转介绍体系；考虑组建小团队。',minXP:5200,maxXP:99999}
   ];
   el.innerHTML=phases.map((p,i)=>{
     let pct=0,prog='';
@@ -1826,7 +1834,7 @@ function switchSkill(k,btn){activeSkill=k;document.querySelectorAll('.skill-item
 function renderSkillDetail(){
   const sk=SKILL_CONTENT[activeSkill];
   const el=document.getElementById('skillDetail');if(!el)return;
-  const xp=L.g('xp',0),lv=Math.floor(xp/300)+1;
+  const xp=L.g('xp',0),lv=levelFromXP(xp);
   let extra='';
   if(activeSkill==='market'){
     const mi=L.g('marketItems',[]),mfd=L.g('marketFetchDate','');
@@ -3083,8 +3091,9 @@ function renderXP(){
   const today=K();
   const tdLogs=xpLog.filter(l=>l.date===today);
   const totalXP=L.g('xp',0);
-  const level=Math.floor(totalXP/300)+1;
-  const xpInLevel=totalXP%300;
+  const level=levelFromXP(totalXP);
+  const xpInLevel=xpIntoLevel(totalXP);
+  const need=xpForNextLevel(totalXP);
 
   // 今日明细
   let tdHTML='';
@@ -3181,12 +3190,12 @@ function renderXP(){
   let lvHTML=`<div class="card" style="background:linear-gradient(135deg,#f0e8c8,#faf5e8);border-left:3px solid #B3864E">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
       <span style="font-weight:700">⭐ Lv.${level}</span>
-      <span style="font-size:10px;color:var(--text-secondary)">${xpInLevel}/300 XP → Lv.${level+1}</span>
+      <span style="font-size:10px;color:var(--text-secondary)">${xpInLevel}/${need} XP → Lv.${level+1}</span>
     </div>
     <div style="background:#e4eef3;border-radius:6px;height:12px;overflow:hidden">
-      <div style="height:100%;width:${Math.round(xpInLevel/300*100)}%;background:linear-gradient(90deg,#B3864E,#fbbf24);border-radius:6px"></div>
+      <div style="height:100%;width:${Math.round(xpInLevel/need*100)}%;background:linear-gradient(90deg,#B3864E,#fbbf24);border-radius:6px"></div>
     </div>
-    <div style="text-align:right;font-size:9px;color:var(--text-secondary);margin-top:3px">累计 ${totalXP} XP · 还需 ${300-xpInLevel} XP 升级</div>
+    <div style="text-align:right;font-size:9px;color:var(--text-secondary);margin-top:3px">累计 ${totalXP} XP · 还需 ${need-xpInLevel} XP 升级</div>
   </div>`;
 
   // 环比对比 (q7)
@@ -3371,7 +3380,7 @@ function shareReport(){
 }
 function renderAch(){
   const xp=L.g('xp',0);
-  const badges=[{id:'a1',icon:'📅',name:'一周连续打卡',desc:'连续7天完成每日任务',req:()=>calcStreak()>=7},{id:'a2',icon:'🎯',name:'任务达人',desc:'累计完成100个任务',req:()=>xp>=300},{id:'a3',icon:'🏘️',name:'经纪人起步',desc:'添加5位客户/房东',req:()=>L.g('landlords',[]).length+L.g('buyers',[]).length+L.g('renters',[]).length>=5},{id:'a4',icon:'📱',name:'内容创作者',desc:'发布并复盘10条视频',req:()=>L.g('contentReviews',[]).length>=10},{id:'a5',icon:'🏋️',name:'健身新星',desc:'累计跟练20次',req:()=>L.g('workouts',[]).length>=20},{id:'a6',icon:'📝',name:'复盘达人',desc:'累计写30篇日报',req:()=>L.g('dailyReviews',[]).length>=30},{id:'a7',icon:'💪',name:'变瘦了',desc:'体重从51kg降到45kg以下',req:()=>(L.g('measurements',[]).filter(m=>parseFloat(m.weight)<=45).length>0)},{id:'a8',icon:'🌟',name:'高级经纪人',desc:'达到Lv.10',req:()=>Math.floor(xp/300)+1>=10}];
+  const badges=[{id:'a1',icon:'📅',name:'一周连续打卡',desc:'连续7天完成每日任务',req:()=>calcStreak()>=7},{id:'a2',icon:'🎯',name:'任务达人',desc:'累计完成100个任务',req:()=>xp>=300},{id:'a3',icon:'🏘️',name:'经纪人起步',desc:'添加5位客户/房东',req:()=>L.g('landlords',[]).length+L.g('buyers',[]).length+L.g('renters',[]).length>=5},{id:'a4',icon:'📱',name:'内容创作者',desc:'发布并复盘10条视频',req:()=>L.g('contentReviews',[]).length>=10},{id:'a5',icon:'🏋️',name:'健身新星',desc:'累计跟练20次',req:()=>L.g('workouts',[]).length>=20},{id:'a6',icon:'📝',name:'复盘达人',desc:'累计写30篇日报',req:()=>L.g('dailyReviews',[]).length>=30},{id:'a7',icon:'💪',name:'变瘦了',desc:'体重从51kg降到45kg以下',req:()=>(L.g('measurements',[]).filter(m=>parseFloat(m.weight)<=45).length>0)},{id:'a8',icon:'🌟',name:'高级经纪人',desc:'达到Lv.10',req:()=>levelFromXP(xp)>=10}];
   const prevUnlocked=L.g('achUnlocked',[]);
   const newlyUnlocked=[];
   document.getElementById('achGrid').innerHTML=badges.map(b=>{
