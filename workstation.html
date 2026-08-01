@@ -306,7 +306,7 @@ th{background:#eef5f8;font-weight:600;color:var(--text-secondary);font-size:10px
 <script>
 // v7.9 版本自检：自动清除旧缓存，安全升级（不丢失数据）
 (function(){
-  var BUILD='v7.9-20260731g';
+  var BUILD='v7.9-20260801a';
   var last=localStorage.getItem('_buildVer');
   if(last===BUILD) return;
   // 版本更新前自动备份数据快照
@@ -3533,6 +3533,22 @@ function seed9090Breathing(){
     L.s('workoutDB',list);
   }
 }
+// 一键补种：添加瘦脸+真空腹视频到已有workoutDB（不覆盖现有数据）
+function seedNewWorkouts(){
+  const list=L.g('workoutDB',[]);
+  let added=0;
+  // 1. 4分钟瘦脸颊
+  if(!list.some(w=>w.url&&w.url.includes('BV15t4y1T7B4'))){
+    list.push({id:'w_face_'+Date.now(),name:'4分钟瘦脸颊 国家资格整容师自我护理',part:'脸部',level:'入门',dur:4,cal:5,author:'巴卡尔法特',platform:'B站',url:'https://www.bilibili.com/video/BV15t4y1T7B4/',points:'国家资格整容师教授;4分钟高效瘦脸颊;自我护理按摩手法;日本专业瘦脸教程',muscles:'面部肌肉、咬肌、颊肌',hidden:false});
+    added++;
+  }
+  // 2. 春晓5分钟真空腹训练
+  if(!list.some(w=>w.url&&w.url.includes('BV1vVd4Y5Eub'))){
+    list.push({id:'w_vacuum_'+(Date.now()+1),name:'春晓5分钟真空腹训练跟练版',part:'核心',level:'入门',dur:5,cal:15,author:'春晓',platform:'B站',url:'https://www.bilibili.com/video/BV1vVd4Y5Eub/',points:'真空腹训练;5分钟跟练版;深层核心收紧;腰围缩小;春晓自用推荐',muscles:'腹横肌、深层核心、膈肌',hidden:false});
+    added++;
+  }
+  if(added){L.s('workoutDB',list);T('已添加 '+added+' 个新跟练视频');}
+}
 function saveDeviceInfo(){
   const avatarUrl=document.getElementById('setAvatarUrl').value.trim();
   if(avatarUrl) L.s('userAvatar',avatarUrl);
@@ -3865,6 +3881,7 @@ seedTodayMeasurement();
 seedAvatar();
 seed9090Breathing();
 seedAshinWorkouts();
+seedNewWorkouts();
 renderHome();
 updateXPUI();
 checkBackupSnapshot();
