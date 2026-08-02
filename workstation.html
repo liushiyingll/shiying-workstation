@@ -306,7 +306,7 @@ th{background:#eef5f8;font-weight:600;color:var(--text-secondary);font-size:10px
 <script>
 // v7.9 版本自检：自动清除旧缓存，安全升级（不丢失数据）
 (function(){
-  var BUILD='v7.9-20260801b';
+  var BUILD='v7.9-20260802a';
   var last=localStorage.getItem('_buildVer');
   if(last===BUILD) return;
   // 版本更新前自动备份数据快照
@@ -488,10 +488,9 @@ th{background:#eef5f8;font-weight:600;color:var(--text-secondary);font-size:10px
 <!-- ==================== FITNESS ==================== -->
 <div class="page" id="page-fitness">
   <div style="font-size:18px;font-weight:700;margin-bottom:2px">🏋️ 健身管理</div>
-  <div style="font-size:11px;color:var(--text-secondary);margin-bottom:12px">跟练 · 维度</div>
+  <div style="font-size:11px;color:var(--text-secondary);margin-bottom:12px">跟练 · XP · 打卡</div>
   <div class="tabs">
     <button class="tab-btn active" onclick="switchFitTab('workout',this)">🏋️ 跟练</button>
-    <button class="tab-btn" onclick="switchFitTab('body',this)">📏 身体维度</button>
   </div>
   <div id="fitnessContent"></div>
 </div>
@@ -2285,8 +2284,24 @@ function saveTopicEdit(){
 function renderTopics(el){
   const topics=L.g('topics',[]).reverse();
   const fetchDate=L.g('hotTopicsFetchDate',HOT_TOPICS_DATE);
-  if(!topics.length){el.innerHTML=`<div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap"><button class="btn btn-accent" onclick="collectTopics()">🔥 采集今日热点</button><button class="btn btn-sm" onclick="openTopicModal()">+ 自定义选题</button></div><div class="empty"><div class="empty-icon">💡</div>暂无选题，点击上方按钮采集热点或添加自定义选题</div>`;return;}
-  el.innerHTML=`
+  const insp=L.g('mediaInspiration',[]);
+  let inspHTML='';
+  if(insp.length){
+    inspHTML=`<div class="card" style="background:linear-gradient(135deg,#f0e8f8,#e8f0fc);margin-bottom:10px;border-left:3px solid #7c3aed">
+      <div class="card-title">🔥 热门内容灵感库（10个方向）</div>
+      <div style="font-size:10px;color:var(--text-secondary);margin-bottom:8px">来源：抖音/小红书/今日头条房产垂类 2025-2026热门内容分析</div>
+      <div class="workout-grid">${insp.map((it,i)=>`<div class="workout-card" style="padding:8px;cursor:pointer" onclick="useInspiration(${i})">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <span class="tag tag-purple" style="font-size:9px">${it.cat}</span>
+          <span style="font-size:9px;color:var(--text-secondary)">${it.formula}</span>
+        </div>
+        <div style="font-size:12px;font-weight:600;line-height:1.4;margin-bottom:4px">${it.title}</div>
+        <div style="font-size:10px;color:var(--text-secondary);line-height:1.3">${it.example}</div>
+      </div>`).join('')}</div>
+    </div>`;
+  }
+  if(!topics.length){el.innerHTML=`${inspHTML}<div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap"><button class="btn btn-accent" onclick="collectTopics()">🔥 采集今日热点</button><button class="btn btn-sm" onclick="openTopicModal()">+ 自定义选题</button></div><div class="empty"><div class="empty-icon">💡</div>暂无选题，点击上方按钮采集热点或添加自定义选题</div>`;return;}
+  el.innerHTML=`${inspHTML}
     <div style="display:flex;gap:8px;margin-bottom:6px;flex-wrap:wrap;align-items:center">
       <button class="btn btn-accent" onclick="collectTopics()">🔥 采集今日热点</button>
       <button class="btn btn-sm" onclick="openTopicModal()">+ 自定义选题</button>
@@ -2315,6 +2330,16 @@ function renderTopics(el){
     }).join('');
 }
 function delTopic(id){const t=L.g('topics',[]).filter(x=>x.id!==id);L.s('topics',t);renderTopics(document.getElementById('mediaContent'));}
+function useInspiration(idx){
+  const insp=L.g('mediaInspiration',[]);
+  if(!insp[idx])return;
+  const it=insp[idx];
+  let t=L.g('topics',[]);
+  t.push({id:Date.now(),title:it.title,platform:'灵感库',plays:'—',likes:'—',date:K(),reason:it.formula,idea:it.example,saved:false,custom:true,source:'热门内容灵感库'});
+  L.s('topics',t);
+  renderTopics(document.getElementById('mediaContent'));
+  T('已添加到选题库：'+it.title.substring(0,20)+'...');
+}
 function saveTopic(id){let t=L.g('topics',[]);const i=t.findIndex(x=>x.id===id);if(i>-1){t[i].saved=!t[i].saved;L.s('topics',t);}}
 // Creative
 // Creative - 爆款二创素材（基于各平台真实爆款视频改编）
@@ -2757,7 +2782,6 @@ function switchFitTab(t,btn){fitTab=t;document.querySelectorAll('#page-fitness .
 function renderFitness(){
   const el=document.getElementById('fitnessContent');
   if(fitTab==='workout')renderWorkout(el);
-  else if(fitTab==='body')renderBodyTrack(el);
 }
 // Workout
 const DEFAULT_WORKOUTS=[
@@ -3558,6 +3582,40 @@ function seedNewWorkouts(){
   }
   if(added){L.s('workoutDB',list);T('已添加 '+added+' 个新跟练视频');}
 }
+// 一键补种：武汉四区最新房价/政策/成交数据
+function seedMarketData(){
+  const items=L.g('marketItems',[]);
+  if(items.length>0 && L.g('marketSeedVer',0)>=3)return;
+  L.s('marketItems',[
+    {tag:'blue',content:'【黄陂区】新房均价约8789-11017元/㎡，盘龙城板块距汉口近+地铁2号线延长线贯通，多子女家庭12万元购房补贴，月销超80套'},
+    {tag:'green',content:'【武昌区】新房均价约28285-28579元/㎡，环比+0.91%，武昌滨江中寰悦府单价3.2-3.5万/㎡，楚河汉街供需两旺'},
+    {tag:'orange',content:'【汉阳区】新房均价约17111元/㎡，四新板块库存压力大以价换量，钟家村等成熟板块价格稳定，120-144㎡改善型房源成交活跃'},
+    {tag:'blue',content:'【汉口/江岸/江汉】江岸均价约30690-31102元/㎡，江汉约27244-29900元/㎡，中心城区成交占全市43.5%，四代住宅开盘去化率超70%'},
+    {tag:'green',content:'【政策】武汉城市更新三年行动推进中，住宅用地容积率从2.89降至2.08，供给端从刚需向改善型低密产品转型'},
+    {tag:'orange',content:'【库存】武汉商品住宅出清周期27.9个月，远城区库存高去化慢，但供给端已减少远城区供应'},
+    {tag:'blue',content:'【成交】2025年上半年商品住宅成交328.2万㎡，同比+2.2%，均价15636元/㎡，江岸/汉阳/东湖高新三区领跑'},
+    {tag:'green',content:'【土拍】2025上半年土地成交金额同比+8.6%，央企占比72.4%为拿地主力，核心区宅地溢价成交'}
+  ]);
+  L.s('marketFetchDate','2026-08-02 搜索汇总');
+  L.s('marketSeedVer',3);
+}
+// 一键补种：房产自媒体热门内容灵感
+function seedMediaInspiration(){
+  const topics=L.g('mediaInspiration',[]);
+  if(topics.length>0)return;
+  L.s('mediaInspiration',[
+    {cat:'刚需购房',title:'首付15万月供2500在武汉拿下三房',formula:'数字冲击+利益挂钩',example:'用具体数字降低心理门槛，戳中刚需资金痛点'},
+    {cat:'避坑指南',title:'买完房才知道的10个坑，第7条90%的人都踩过',formula:'避坑干货+数字排序',example:'用个人经历+利益损失增强可信度'},
+    {cat:'行业内幕',title:'房产销售不会告诉你的3个楼层白送都别要',formula:'信息差+夸张表达',example:'制造信息差吸引点击，附选房秘籍'},
+    {cat:'政策解读',title:'学区房新政策后这类房子正在偷偷涨价',formula:'蹭政策热点+提供价值',example:'吸引家长群体，附选房避坑指南'},
+    {cat:'实景看房',title:'100万在武汉能买到什么样的房子？',formula:'悬念提问+场景代入',example:'让观众跟着镜头看房，不用去现场实现看房自由'},
+    {cat:'装修爆改',title:'爆改60㎡老破小，厨房变开放式后邻居全来抄作业',formula:'爆改+成果说服力',example:'强视觉冲击+实用干货'},
+    {cat:'租房/公寓',title:'25岁女生独居30㎡小公寓：不买房的日子活得更爽',formula:'反主流视角+年轻化叙事',example:'引发情感共鸣，适合小红书'},
+    {cat:'争议话题',title:'房价真的跌了！现在买房能砍价多少？',formula:'结合热点+行业内幕',example:'满足用户信息差需求，引发评论区互动'},
+    {cat:'女性购房',title:'她花70万买下房子全家炸锅！单身女性该不该买房？',formula:'争议性话题+真实故事',example:'两极评论引爆流量，南京真实案例'},
+    {cat:'出租屋改造',title:'8平米出租屋爆改成理想小窝，拒绝凑合住',formula:'抖音话题播放量21亿+小红书35亿',example:'年轻化趋势，适合多平台分发'}
+  ]);
+}
 function saveDeviceInfo(){
   const avatarUrl=document.getElementById('setAvatarUrl').value.trim();
   if(avatarUrl) L.s('userAvatar',avatarUrl);
@@ -3891,6 +3949,8 @@ seedAvatar();
 seed9090Breathing();
 seedAshinWorkouts();
 seedNewWorkouts();
+seedMarketData();
+seedMediaInspiration();
 renderHome();
 updateXPUI();
 checkBackupSnapshot();
