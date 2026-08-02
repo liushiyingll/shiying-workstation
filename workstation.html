@@ -306,7 +306,7 @@ th{background:#eef5f8;font-weight:600;color:var(--text-secondary);font-size:10px
 <script>
 // v7.9 版本自检：自动清除旧缓存，安全升级（不丢失数据）
 (function(){
-  var BUILD='v7.9-20260802c';
+  var BUILD='v7.9-20260802d';
   var last=localStorage.getItem('_buildVer');
   if(last===BUILD) return;
   // 版本更新前自动备份数据快照
@@ -463,8 +463,6 @@ th{background:#eef5f8;font-weight:600;color:var(--text-secondary);font-size:10px
   <div class="tabs">
     <button class="tab-btn active" onclick="switchRealtorTab('roadmap',this)">🗺️ 成长路线</button>
     <button class="tab-btn" onclick="switchRealtorTab('skills',this)">📚 6大技能</button>
-    <button class="tab-btn" onclick="switchRealtorTab('clients',this)">👥 客户管理</button>
-    <button class="tab-btn" onclick="switchRealtorTab('commission',this)">💰 佣金收入</button>
   </div>
   <div id="realtorContent"></div>
 </div>
@@ -1733,8 +1731,6 @@ function renderRealtor(){
   const el=document.getElementById('realtorContent');
   if(realtorTab==='roadmap')renderRoadmap(el);
   else if(realtorTab==='skills')renderSkills(el);
-  else if(realtorTab==='clients')renderClientsTab(el);
-  else if(realtorTab==='commission')renderCommission(el);
 }
 function renderRoadmap(el){
   const xp=L.g('xp',0),lv=levelFromXP(xp);
@@ -1763,14 +1759,15 @@ function renderRoadmap(el){
 const SKILL_CONTENT={
   'market':{name:'市场分析',icon:'📊',desc:'武汉及全国房地产深度分析，每日更新真实行情',items:[
     {title:'🔥 2026年7月房地产史诗级新政落地',desc:'六部委联合出手：住建部/央行/财政部/税务总局/金监总局/自然资源部同步发文。核心：首套首付全国统一下调至15%、二套25%；取消限购限售限价；3000亿保障房专项再贷款7月全额投放；"卖旧买新"个税退税延至2027年底。业内称"2015年后最强救市政策"。',date:'7月28日',link:'https://www.cnr.cn/newscenter/native/gd/20260728/t20260728_527734992.shtml'},
-    {title:'🏠 武汉楼市持续升温：多个"日光盘"涌现',desc:'2026年7月武汉新房市场现结构性回暖。绿城·云墅7月11日开盘159套全部售罄(均价1.87万/㎡突破大汉口三环外天花板)；上半年新房成交45641套+6.1%。"汉七条"+建筑新规双重利好驱动。武昌/光谷/汉阳供需均衡；远城区去化周期超30个月。',date:'7月29日',link:'https://www.thepaper.cn/newsDetail_forward_33680795'},
-    {title:'📉 武汉各区县楼市分化加剧',desc:'7月1-20日新房成交仅3713套(约为6月全月30%)，均价13281元/㎡环比-0.26%。光谷9423套领跑全市；主城区去化19.5个月vs远城区30+月。土地市场"缩量提质"：上半年仅成交19宗涉宅地块(建面144.54万㎡同比-33.9%)。',date:'7月27日',link:'https://www.163.com/dy/article/L2RPBEF70553TB9L.html'},
-    {title:'💡 楼市"政策底"确立，市场底还需等待',desc:'业界判断政策底三大标准全部达标：六部委协同出台系统性政策；覆盖金融/税费/行政/保障房全链条；形成长效制度安排。但需3-6个月传导期。上半年全国新房销售面积40141万㎡同比-11.6%，二手房网签面积同比+10.2%。新房+二手房合计近3月连续正增长。',date:'7月28日',link:'https://cj.sina.com.cn/article/norm_detail?url=https://finance.sina.com.cn/jjxw/2026-07-28/doc-inikimep0424518.shtml'},
-    {title:'🔄 二手房成为楼市"半壁江山"',desc:'2026上半年，二手房在全国新房+二手房交易总量中占比首次突破50.4%(半年度尺度)，18个省二手住宅交易面积超新房。北京/上海/广州/深圳+12个区域中心城市6月交易总量同比+21.7%。207城正增长。武汉二手房挂牌降至13.41万套(高峰时18万+)。',date:'7月28日',link:'https://www.cnr.cn/newscenter/native/gd/20260728/t20260728_527734992.shtml'},
-    {title:'🏗️ 商业地产精细化转型',desc:'武汉甲级写字楼存量350.1万㎡，整体空置率38.8%环比-0.7pct，但租金环比-3.3%至68.7元/㎡/月。零售商业步入结构调整期。城市更新条例正式实施，"五改四好"政策推动存量提质。',date:'7月',link:'https://new.qq.com/rain/a/20260710A0A4X400'},
-    {title:'🏡 武汉"好房子"项目去化率超80%',desc:'建筑新规落地后，抬板社区项目去化率优于四代宅/三代宅。房客比超1:3，多个楼盘摇号销售。二手房量涨价跌持续分流刚需。新房与二手房的竞争焦点从"拼价格"转变为"拼品质"。',date:'7月',link:'http://www.whfx.cn/xhdt/2026-07-21/8968.html'},
-    {title:'🌐 全国楼市模式转型：从开发到运营',desc:'国务院"十五五"规划将住房列为大宗耐用消费品（与汽车/家电同层级），标志着房产从投资品彻底回归消费品。各地收购存量房做保障房全面推进：湖北首发6.77亿专项债；苏州鼓励国企收购。唐山/青岛等地"好房子"项目成新卖点。',date:'7月28日',link:'https://www.cnr.cn/newscenter/native/gd/20260728/t20260728_527734992.shtml'}
-  ],fetchHint:'每篇均可点击跳转原文阅读。市场分析每日有最新文章时自动更新 — 不会重复展示相同内容。'},
+    {title:'📊 武汉四区8月房价数据（官方）',desc:'黄陂区：新房均价7,231元/㎡（同比-18.2%），8月成交1510套领跑全市。武昌区：新房均价26,879元/㎡（同比-7.7%），成交325套。汉阳区：新房均价13,752元/㎡（同比-9.5%），成交572套。江岸区(汉口)：新房均价18,777元/㎡（同比-27.4%），成交404套。武汉整体新房均价13,220元/㎡。',date:'8月（官方）',link:'https://zgj.wuhan.gov.cn/xxgk/xxgkml/sjfb/spzfxysydjcjb/202509/t20250904_2643475.shtml'},
+    {title:'🏠 黄陂区二手房均价持续下行',desc:'黄陂区二手房最新均价6,506元/㎡（环比-0.71%），近12个月从7,223元持续降至6,506元。新房均价7,943元/㎡（1-8月累计同比-13.8%）。盘龙城板块为主力成交区。',date:'8月',link:'https://m.fang.com/fangjia/wuhan/'},
+    {title:'📈 武昌区房价仍居武汉前列',desc:'武昌区1-8月新房均价29,951元/㎡为全市最高，8月均价26,879元/㎡（同比-7.7%）。滨江板块3.2-3.5万/㎡。成交量同比+37.7%（1-8月），是少数面积正增长区域。',date:'8月',link:'https://www.cih-index.com/newenergy/detail/106599.html'},
+    {title:'🏘️ 汉阳区以价换量成效显著',desc:'汉阳区8月成交572套，1-8月新房均价14,745元/㎡（同比-14.1%）。四新板块以价换量策略明显，钟家村板块价格相对稳定。成交量在主城区中位居前列。',date:'8月',link:'https://www.cih-index.com/newenergy/detail/106599.html'},
+    {title:'💼 江岸区(汉口)成交量大降27%',desc:'江岸区8月新房均价18,777元/㎡（同比-27.4%），成交404套。1-8月均价22,153元/㎡（同比-15.1%）。汉口核心区价格仍处高位但成交量萎缩明显，购房者在等更低价格。',date:'8月',link:'https://www.cih-index.com/newenergy/detail/106599.html'},
+    {title:'📉 武汉楼市整体仍在筑底',desc:'2025年8月武汉商品住宅成交3616套（同比-27.64%），成交面积44.52万㎡（同比-24.16%）。1-8月累计成交32577套（同比-10.2%）。二手房均价14,217元/㎡（同比-9.67%），跌幅收窄。',date:'8月',link:'https://www.cih-index.com/newenergy/detail/106599.html'},
+    {title:'🔄 二手房占比突破50%，新房二手房竞争加剧',desc:'2025年1-8月武汉二手住宅价格累计下跌7.20%。全国范围内二手房交易占比首次突破50%，18个省二手住宅交易面积超新房。武汉二手房挂牌量降至13.41万套（高峰时18万+）。',date:'8月',link:'https://www.cih-index.com/newenergy/detail/106599.html'},
+    {title:'🌐 房地产正式迈入"消费时代"',desc:'《十五五规划》将住房划入大宗消费品（与汽车/家电同层级），标志着房产从投资品回归消费品。各地收购存量房做保障房全面推进，湖北首发6.77亿专项债。"好房子"项目去化率超80%，品质竞争成新焦点。',date:'8月',link:'https://www.cnr.cn/newscenter/native/gd/20260728/t20260728_527734992.shtml'}
+  ],fetchHint:'点击「获取最新行情」可联网搜索武汉四区最新房价/政策/成交数据。每篇可点击查看详情和跳转原文。'},
   'house':{name:'房源知识',icon:'📚',desc:'覆盖房产行业全知识点，每日滚动复习',items:[
     {title:'绿化率',desc:'小区用地范围内绿地面积与用地面积的比率。商品房25%-40%，高端盘可达50%+。高绿化率=环境好+溢价空间。'},
     {title:'容积率',desc:'总建筑面积与用地面积的比值。容积率越低越舒适（别墅<1，洋房1-2，高层2-4）。直接决定采光/通风/拥挤感。'},
@@ -1900,10 +1897,10 @@ function renderSkillDetail(){
       <div class="kc-desc">${it.desc}${it.date?`<span style="font-size:9px;color:var(--text-secondary);margin-left:6px">(${it.date})</span>`:''}</div>
     </div>`).join('');
   } else if(activeSkill==='market'){
-    itemsHtml=sk.items.map((it,i)=>`<div class="knowledge-card" style="animation:fadeIn .${2+i}s ease both;border-left:3px solid var(--primary)">
+    itemsHtml=sk.items.map((it,i)=>`<div class="knowledge-card" style="animation:fadeIn .${2+i}s ease both;border-left:3px solid var(--primary);cursor:pointer" onclick="showMarketDetail(${i})">
       <div class="kc-title">📖 ${it.title}</div>
-      <div class="kc-desc">${it.desc}${it.date?`<span style="font-size:9px;color:var(--text-secondary);margin-left:6px">(${it.date})</span>`:''}</div>
-      ${it.link?`<a href="${it.link}" target="_blank" rel="noopener" style="display:inline-block;margin-top:8px;padding:4px 12px;font-size:11px;color:#fff;background:var(--primary);border-radius:4px;text-decoration:none;font-weight:600" onclick="event.stopPropagation();smartOpen('${it.link.replace(/'/g,"\\'")}','')">🔗 阅读原文</a>`:'<span style="display:inline-block;margin-top:8px;font-size:10px;color:var(--text-secondary)">📌 原文链接待补充</span>'}
+      <div class="kc-desc">${it.desc.substring(0,80)}...${it.date?`<span style="font-size:9px;color:var(--text-secondary);margin-left:6px">(${it.date})</span>`:''}</div>
+      <div style="font-size:10px;color:var(--primary);margin-top:4px">👆 点击查看详情 →</div>
     </div>`).join('');
   } else {
     itemsHtml=sk.items.map((it,i)=>`<div class="knowledge-card" style="animation:fadeIn .${2+i}s ease both"><div class="kc-title">📖 ${it.title}</div><div class="kc-desc">${it.desc}${it.date?`<span style="font-size:9px;color:var(--text-secondary);margin-left:6px">(${it.date})</span>`:''}</div></div>`).join('');
@@ -2059,18 +2056,68 @@ function saveCommission(){
 }
 function delCommission(idx){const r=L.g('commission_records',[]);r.splice(idx,1);L.s('commission_records',r);renderRealtor();T('已删除');}
 // Market fetch
-function fetchMarketData(){
-  // 清除旧的行情快讯缓存，确保展示真实文章索引
-  const oldItems=L.g('marketItems',[]);
-  if(oldItems.length>0){L.s('marketItems',[]);}
-  L.s('marketFetchDate',K());
-  L.s('marketLastRefresh',Date.now());
-  T('📡 市场分析已更新至' + K() + ' · 下方8篇真实分析文章可点击🔗阅读原文跳转原网站');
+async function fetchMarketData(){
+  const btn=event&&event.target;if(btn){btn.disabled=true;btn.textContent='⏳ 正在搜索...';}
+  T('📡 正在联网搜索武汉四区最新房产行情...');
+  L.s('marketFetchDate',K()+' (搜索中...)');
   renderSkillDetail();
-  if(activeSkill==='market')renderRealtor();
+  try{
+    const queries=['武汉黄陂区房价最新','武汉武昌区房价政策最新','武汉汉阳区房价成交最新','武汉汉口江岸区房价最新'];
+    const allNews=[];
+    for(let q of queries){
+      try{
+        const url='https://api.allorigins.win/raw?url='+encodeURIComponent('https://www.baidu.com/s?wd='+encodeURIComponent(q+' 2025')+'&rn=5');
+        const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),8000);
+        const resp=await fetch(url,{signal:ctrl.signal});
+        const html=await resp.text();
+        const doc=new DOMParser().parseFromString(html,'text/html');
+        doc.querySelectorAll('.result h3 a, .result-op h3 a').forEach(a=>{
+          const t=a.textContent.trim();
+          if(t&&t.length>8&&t.length<100&&!t.includes('百度')&&!t.includes('登录')){
+            allNews.push({content:'['+q.replace('武汉','').replace('房价最新','').replace('房价政策最新','').replace('房价成交最新','')+'] '+t,link:a.href,tag:'blue',date:K()});
+          }
+        });
+      }catch(e){/* skip failed query */}
+    }
+    if(allNews.length>=3){
+      const unique=[];
+      const seen=new Set();
+      allNews.forEach(n=>{if(!seen.has(n.content)){seen.add(n.content);unique.push(n);}});
+      L.s('marketItems',unique.slice(0,12));
+      L.s('marketFetchDate',K()+' (联网搜索)');
+      L.s('marketLastRefresh',Date.now());
+      T('✅ 已搜索到 '+unique.length+' 条最新行情');
+      if(btn){btn.disabled=false;btn.textContent='📡 获取最新行情';}
+      renderSkillDetail();if(activeSkill==='market')renderRealtor();
+      return;
+    }
+    throw new Error('Not enough results');
+  }catch(e){
+    L.s('marketItems',[]);
+    L.s('marketFetchDate',K()+' (内置数据)');
+    T('⚠️ 联网搜索失败，已显示内置最新数据。下方8篇分析文章可点击查看详情');
+    if(btn){btn.disabled=false;btn.textContent='📡 获取最新行情';}
+    renderSkillDetail();if(activeSkill==='market')renderRealtor();
+  }
 }
-
-// Negotiation modal
+function showMarketDetail(i){
+  const sk=SKILL_CONTENT['market'];if(!sk||!sk.items[i])return;
+  const it=sk.items[i];
+  const mi=L.g('marketItems',[]);
+  const fetched=mi[i];
+  const html=`<div class="modal-overlay" onclick="if(event.target===this)closeM()"><div class="modal">
+    <div class="modal-title">📊 ${it.title}</div>
+    <div style="font-size:10px;color:var(--text-secondary);margin-bottom:8px">📅 ${it.date||'未知'} · 来源：房产市场分析</div>
+    <div style="font-size:12px;line-height:1.8;background:var(--bg);border-radius:8px;padding:12px;margin-bottom:12px">${it.desc}</div>
+    ${fetched?`<div style="font-size:11px;color:var(--primary);margin-bottom:8px">📡 联网搜索结果：${fetched.content}</div>`:''}
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      ${it.link?`<a href="${it.link}" target="_blank" rel="noopener" style="display:inline-block;padding:8px 16px;font-size:12px;color:#fff;background:var(--primary);border-radius:6px;text-decoration:none;font-weight:600">🔗 阅读原文</a>`:''}
+      <button class="btn btn-sm btn-outline" onclick="navigator.clipboard.writeText('${it.title}\\n${it.desc}'.replace(/\\\\n/g,'\\n'));T('已复制')">📋 复制内容</button>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeM()">关闭</button></div>
+  </div></div>`;
+  document.body.insertAdjacentHTML('beforeend',html);
+}
 function openNegotiateModal(){
   const html=`<div class="modal-overlay" onclick="if(event.target===this)closeM()"><div class="modal"><div class="modal-title">+ 添加谈判技巧</div>
     <div class="form-group"><label>技巧标题</label><input class="input" id="ngTitle"></div>
@@ -2181,11 +2228,35 @@ function analyzeViral(topic){
   const level=score>=70?'🌟 高爆款潜力':score>=45?'🔥 中等潜力':'📝 需优化';
   return {score,level,tags:[...new Set(tags)],details};
 }
-function collectTopics(){
+async function collectTopics(){
+  const btn=event&&event.target;if(btn){btn.disabled=true;btn.textContent='⏳ 搜索中...';}
+  T('🔥 正在联网搜索房产自媒体热门话题...');
+  let fetched=[];
+  try{
+    const url='https://api.allorigins.win/raw?url='+encodeURIComponent('https://www.baidu.com/s?wd='+encodeURIComponent('房产自媒体 抖音 热门选题 2025')+'&rn=10');
+    const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),10000);
+    const resp=await fetch(url,{signal:ctrl.signal});
+    const html=await resp.text();
+    const doc=new DOMParser().parseFromString(html,'text/html');
+    doc.querySelectorAll('.result h3 a, .result-op h3 a').forEach(a=>{
+      const t=a.textContent.trim();
+      if(t&&t.length>8&&t.length<120&&!t.includes('百度')&&!t.includes('登录')){
+        fetched.push({id:Date.now()+Math.random(),title:t,platform:'百度搜索',plays:'—',likes:'—',date:K(),reason:'联网搜索热门话题',idea:'点击编辑添加你的创作思路',saved:false,custom:true,source:'联网搜索',link:a.href});
+      }
+    });
+  }catch(e){/* fallback to demo */}
   let topics=L.g('topics',[]);const exist=topics.map(t=>t.title);let added=0;
-  DEMO_TOPICS.forEach(d=>{if(!exist.includes(d.title)){topics.push({...d,id:Date.now()+Math.random(),date:K(),saved:false});added++;}});
-  L.s('topics',topics);L.s('hotTopicsFetchDate',HOT_TOPICS_DATE);
-  renderTopics(document.getElementById('mediaContent'));T(added?`采集 ${added} 条热点 · 数据来源：${HOT_TOPICS_DATE} 各平台真实热榜`:'选题库已是最新');
+  if(fetched.length>=3){
+    fetched.forEach(d=>{if(!exist.includes(d.title)){topics.push(d);added++;}});
+    L.s('topics',topics);L.s('hotTopicsFetchDate',K()+' (联网搜索)');
+    T(added?`✅ 联网搜索到 ${added} 条热门话题`:'选题库已是最新');
+  }else{
+    DEMO_TOPICS.forEach(d=>{if(!exist.includes(d.title)){topics.push({...d,id:Date.now()+Math.random(),date:K(),saved:false});added++;}});
+    L.s('topics',topics);L.s('hotTopicsFetchDate',HOT_TOPICS_DATE);
+    T(added?`采集 ${added} 条热点（内置数据）`:'选题库已是最新');
+  }
+  if(btn){btn.disabled=false;btn.textContent='🔥 采集今日热点';}
+  renderTopics(document.getElementById('mediaContent'));
 }
 function openTopicModal(){
   const html=`<div class="modal-overlay" onclick="if(event.target===this)closeM()"><div class="modal"><div class="modal-title">💡 添加选题灵感</div>
@@ -2248,14 +2319,15 @@ function renderTopics(el){
   if(insp.length){
     inspHTML=`<div class="card" style="background:linear-gradient(135deg,#f0e8f8,#e8f0fc);margin-bottom:10px;border-left:3px solid #7c3aed">
       <div class="card-title">🔥 热门内容灵感库（10个方向）</div>
-      <div style="font-size:10px;color:var(--text-secondary);margin-bottom:8px">来源：抖音/小红书/今日头条房产垂类 2025-2026热门内容分析</div>
-      <div class="workout-grid">${insp.map((it,i)=>`<div class="workout-card" style="padding:8px;cursor:pointer" onclick="useInspiration(${i})">
+      <div style="font-size:10px;color:var(--text-secondary);margin-bottom:8px">来源：抖音/小红书/今日头条房产垂类 2025-2026热门内容分析 · 点击卡片查看详情</div>
+      <div class="workout-grid">${insp.map((it,i)=>`<div class="workout-card" style="padding:8px;cursor:pointer" onclick="showInspirationDetail(${i})">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
           <span class="tag tag-purple" style="font-size:9px">${it.cat}</span>
           <span style="font-size:9px;color:var(--text-secondary)">${it.formula}</span>
         </div>
         <div style="font-size:12px;font-weight:600;line-height:1.4;margin-bottom:4px">${it.title}</div>
-        <div style="font-size:10px;color:var(--text-secondary);line-height:1.3">${it.example}</div>
+        <div style="font-size:10px;color:var(--text-secondary);line-height:1.3">${it.example.substring(0,40)}...</div>
+        <div style="font-size:9px;color:#7c3aed;margin-top:4px">👆 点击查看详情</div>
       </div>`).join('')}</div>
     </div>`;
   }
@@ -2289,6 +2361,26 @@ function renderTopics(el){
     }).join('');
 }
 function delTopic(id){const t=L.g('topics',[]).filter(x=>x.id!==id);L.s('topics',t);renderTopics(document.getElementById('mediaContent'));}
+function showInspirationDetail(idx){
+  const insp=L.g('mediaInspiration',[]);
+  if(!insp[idx])return;
+  const it=insp[idx];
+  const html=`<div class="modal-overlay" onclick="if(event.target===this)closeM()"><div class="modal">
+    <div class="modal-title">🔥 内容灵感详情</div>
+    <div style="margin-bottom:8px"><span class="tag tag-purple">${it.cat}</span></div>
+    <div style="font-size:14px;font-weight:600;margin-bottom:8px;line-height:1.5">${it.title}</div>
+    <div style="font-size:11px;line-height:1.8;background:var(--bg);border-radius:8px;padding:12px;margin-bottom:10px">
+      <div style="margin-bottom:6px"><b>📋 创作公式：</b>${it.formula}</div>
+      <div style="margin-bottom:6px"><b>💡 示例：</b>${it.example}</div>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="btn" onclick="closeM();useInspiration(${idx})">➕ 添加到选题库</button>
+      <button class="btn btn-sm btn-outline" onclick="navigator.clipboard.writeText('${it.title.replace(/'/g,"\\'")}\\n${it.formula.replace(/'/g,"\\'")}\\n${it.example.replace(/'/g,"\\'")}');T('已复制')">📋 复制</button>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeM()">关闭</button></div>
+  </div></div>`;
+  document.body.insertAdjacentHTML('beforeend',html);
+}
 function useInspiration(idx){
   const insp=L.g('mediaInspiration',[]);
   if(!insp[idx])return;
@@ -2331,7 +2423,29 @@ function renderCreative(el){
     <div class="card" style="background:#fef9c3;padding:8px 12px;margin-bottom:8px;font-size:11px">
       💡 <b>提示：</b>要让我帮你分析博主内容和二创脚本，请告诉我你能提供的资源——博主主页链接、特定爆款视频链接、你关注的话题方向、已有素材等。
     </div>
-    ${items.map(c=>{const [tl,tc]=tm[c.tag]||['','tag-gray'];return `<div class="card"><div style="font-weight:600;font-size:13px;margin-bottom:2px">${c.title}</div><div style="font-size:10px;color:var(--text-secondary);margin-bottom:6px">${c.platform} · ${c.author}${c.bloggerRef?' · 📌'+c.bloggerRef:''} · 🔥${c.plays}</div><div style="margin-bottom:6px"><span class="tag ${tc}">${tl}</span> <span class="tag tag-gray">${c.category}</span></div><div class="knowledge-card" style="border-left-color:var(--secondary)"><b>📝 改编脚本：</b><pre style="white-space:pre-wrap;font-family:inherit;font-size:10px;line-height:1.6;margin-top:4px;background:#f8f8f8;padding:6px;border-radius:4px">${c.script}</pre></div><div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px"><select class="status-select" onchange="updateCreativeTag(${c.id},this.value)"><option value="available" ${c.tag==='available'?'selected':''}>🟢 可用</option><option value="pending" ${c.tag==='pending'?'selected':''}>🟡 待拍摄</option><option value="done" ${c.tag==='done'?'selected':''}>🔵 已拍摄</option></select><button class="btn btn-sm" onclick="window.open('https://www.douyin.com/search/${encodeURIComponent(c.title)}','_blank')">🔗 原视频</button><button class="btn btn-sm btn-outline" onclick="navigator.clipboard.writeText(\`${c.script.replace(/`/g,'\\`')}\`);T('已复制')">📋 复制脚本</button><button class="btn btn-sm btn-secondary" onclick="delCreative(${c.id})">🗑️</button></div></div>`}).join('')}`;
+    ${items.map(c=>{const [tl,tc]=tm[c.tag]||['','tag-gray'];return `<div class="card" style="cursor:pointer" onclick="showCreativeDetail(${c.id})"><div style="font-weight:600;font-size:13px;margin-bottom:2px">${c.title}</div><div style="font-size:10px;color:var(--text-secondary);margin-bottom:6px">${c.platform} · ${c.author}${c.bloggerRef?' · 📌'+c.bloggerRef:''} · 🔥${c.plays}</div><div style="margin-bottom:6px"><span class="tag ${tc}">${tl}</span> <span class="tag tag-gray">${c.category}</span></div><div class="knowledge-card" style="border-left-color:var(--secondary)"><b>📝 改编脚本：</b><span style="font-size:10px;display:block;margin-top:4px;line-height:1.5">${c.script.substring(0,80)}...</span></div><div style="font-size:10px;color:var(--primary);margin-top:4px">👆 点击查看完整脚本和详情</div></div>`}).join('')}`;
+}
+function showCreativeDetail(id){
+  let items=L.g('creative',[]);
+  if(!items.length){items=DEMO_CREATIVE.map((d,i)=>({...d,id:Date.now()+i,date:K()}));L.s('creative',items);}
+  const c=items.find(x=>x.id===id);if(!c)return;
+  const tm={available:['🟢 可用','tag-green'],pending:['🟡 待拍摄','tag-orange'],done:['🔵 已拍摄','tag-blue']};
+  const [tl,tc]=tm[c.tag]||['','tag-gray'];
+  const html=`<div class="modal-overlay" onclick="if(event.target===this)closeM()"><div class="modal">
+    <div class="modal-title">🎬 二创素材详情</div>
+    <div style="font-size:13px;font-weight:600;margin-bottom:6px;line-height:1.5">${c.title}</div>
+    <div style="font-size:10px;color:var(--text-secondary);margin-bottom:8px">${c.platform} · ${c.author}${c.bloggerRef?' · 📌'+c.bloggerRef:''} · 🔥${c.plays}${c.source?' · 来源：'+c.source:''}</div>
+    <div style="margin-bottom:10px"><span class="tag ${tc}">${tl}</span> <span class="tag tag-gray">${c.category}</span></div>
+    <div style="font-size:11px;font-weight:600;margin-bottom:4px">📝 完整改编脚本：</div>
+    <pre style="white-space:pre-wrap;font-family:inherit;font-size:11px;line-height:1.8;background:var(--bg);padding:12px;border-radius:8px;margin-bottom:12px">${c.script}</pre>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+      <select class="status-select" onchange="updateCreativeTag(${c.id},this.value)"><option value="available" ${c.tag==='available'?'selected':''}>🟢 可用</option><option value="pending" ${c.tag==='pending'?'selected':''}>🟡 待拍摄</option><option value="done" ${c.tag==='done'?'selected':''}>🔵 已拍摄</option></select>
+      <button class="btn btn-sm" onclick="event.stopPropagation();window.open('https://www.douyin.com/search/${encodeURIComponent(c.title)}','_blank')">🔗 搜索原视频</button>
+      <button class="btn btn-sm btn-outline" onclick="event.stopPropagation();navigator.clipboard.writeText(\`${c.script.replace(/`/g,'\\`')}\`);T('已复制脚本')">📋 复制脚本</button>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeM()">关闭</button><button class="btn btn-sm btn-secondary" onclick="closeM();delCreative(${c.id})">🗑️ 删除</button></div>
+  </div></div>`;
+  document.body.insertAdjacentHTML('beforeend',html);
 }
 function updateCreativeTag(id,t){let c=L.g('creative',[]);const i=c.findIndex(x=>x.id===id);if(i>-1){c[i].tag=t;L.s('creative',c);}}
 function delCreative(id){showConfirm('确认删除这条素材？',()=>{let c=L.g('creative',[]);c=c.filter(x=>x.id!==id);L.s('creative',c);renderMedia();});}
@@ -3560,20 +3674,21 @@ function seedMarketData(){
 }
 // 一键补种：房产自媒体热门内容灵感
 function seedMediaInspiration(){
-  const topics=L.g('mediaInspiration',[]);
-  if(topics.length>0)return;
+  const ver=L.g('mediaInspiration_ver','');
+  if(ver===BUILD)return;
   L.s('mediaInspiration',[
-    {cat:'刚需购房',title:'首付15万月供2500在武汉拿下三房',formula:'数字冲击+利益挂钩',example:'用具体数字降低心理门槛，戳中刚需资金痛点'},
-    {cat:'避坑指南',title:'买完房才知道的10个坑，第7条90%的人都踩过',formula:'避坑干货+数字排序',example:'用个人经历+利益损失增强可信度'},
-    {cat:'行业内幕',title:'房产销售不会告诉你的3个楼层白送都别要',formula:'信息差+夸张表达',example:'制造信息差吸引点击，附选房秘籍'},
-    {cat:'政策解读',title:'学区房新政策后这类房子正在偷偷涨价',formula:'蹭政策热点+提供价值',example:'吸引家长群体，附选房避坑指南'},
-    {cat:'实景看房',title:'100万在武汉能买到什么样的房子？',formula:'悬念提问+场景代入',example:'让观众跟着镜头看房，不用去现场实现看房自由'},
-    {cat:'装修爆改',title:'爆改60㎡老破小，厨房变开放式后邻居全来抄作业',formula:'爆改+成果说服力',example:'强视觉冲击+实用干货'},
-    {cat:'租房/公寓',title:'25岁女生独居30㎡小公寓：不买房的日子活得更爽',formula:'反主流视角+年轻化叙事',example:'引发情感共鸣，适合小红书'},
-    {cat:'争议话题',title:'房价真的跌了！现在买房能砍价多少？',formula:'结合热点+行业内幕',example:'满足用户信息差需求，引发评论区互动'},
-    {cat:'女性购房',title:'她花70万买下房子全家炸锅！单身女性该不该买房？',formula:'争议性话题+真实故事',example:'两极评论引爆流量，南京真实案例'},
-    {cat:'出租屋改造',title:'8平米出租屋爆改成理想小窝，拒绝凑合住',formula:'抖音话题播放量21亿+小红书35亿',example:'年轻化趋势，适合多平台分发'}
+    {cat:'短视频工业化',title:'3秒钩子+20秒痛点+10秒解决：房产爆款视频万能公式',formula:'公式化爆款模板（云客峰会2025）',example:'3秒制造冲突/悬念→20秒场景化共鸣→10秒实用价值输出，单条留资超400组'},
+    {cat:'AI虚拟人口播',title:'AI数字人房产口播：0成本日产50条视频',formula:'AI降本增效+量产策略',example:'用AI虚拟人口播+智能剪辑，降低人力成本，旧爆款翻新最大化内容利用率'},
+    {cat:'私域运营',title:'公域引流→私域承接→裂变：房产经纪人获客闭环',formula:'引流-承接-裂变三步法',example:'从抖音/小红书导流到企业微信，按预算/需求标签分层运营，自动化推送匹配信息'},
+    {cat:'高端别墅揭秘',title:'武汉2000万别墅长什么样？带你参观买不起的房子',formula:'好奇心驱动+稀缺内容',example:'竞争对手少，观众好奇度高，更容易打造爆款'},
+    {cat:'行业内幕爆料',title:'售楼处5个套路：销售绝不会主动告诉你的秘密',formula:'信息差揭秘+利益相关',example:'揭秘黑中介骗术/买房内幕/售楼处套路，把握内容尺度'},
+    {cat:'政策解读',title:'十五五规划后房子变消费品！现在该不该买？',formula:'蹭政策热点+提供行动建议',example:'贷款/楼市/落户/房价政策解读，更容易受用户关注'},
+    {cat:'实景看房',title:'月供2500在黄陂能买到什么房？3套实拍对比',formula:'悬念数字+场景代入',example:'跟着博主镜头看房，让观众不用去现场就实现看房自由'},
+    {cat:'家生活改造',title:'8平米出租屋爆改：家的养成计划28亿浏览量赛道',formula:'小红书热门话题+年轻化叙事',example:'小红书"家的养成计划"28.3亿浏览，出租屋改造/氛围感角落笔记超千万'},
+    {cat:'女性购房',title:'她花70万买房全家炸锅！单身女性该不该买房？',formula:'争议性话题+真实故事',example:'女性购房主力军地位凸显，两极评论引爆流量'},
+    {cat:'人设矩阵',title:'房产律师/学区房妈妈/创始人IP：三种人设哪个适合你？',formula:'差异化人设组合+多元客群覆盖',example:'专业权威型/情感共鸣型/信任背书型，覆盖不同客群提升信任度'}
   ]);
+  L.s('mediaInspiration_ver',BUILD);
 }
 function saveDeviceInfo(){
   const avatarUrl=document.getElementById('setAvatarUrl').value.trim();
