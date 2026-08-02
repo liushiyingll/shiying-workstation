@@ -306,7 +306,7 @@ th{background:#eef5f8;font-weight:600;color:var(--text-secondary);font-size:10px
 <script>
 // v7.9 版本自检：自动清除旧缓存，安全升级（不丢失数据）
 (function(){
-  var BUILD='v7.9-20260802a';
+  var BUILD='v7.9-20260802c';
   var last=localStorage.getItem('_buildVer');
   if(last===BUILD) return;
   // 版本更新前自动备份数据快照
@@ -463,7 +463,6 @@ th{background:#eef5f8;font-weight:600;color:var(--text-secondary);font-size:10px
   <div class="tabs">
     <button class="tab-btn active" onclick="switchRealtorTab('roadmap',this)">🗺️ 成长路线</button>
     <button class="tab-btn" onclick="switchRealtorTab('skills',this)">📚 6大技能</button>
-    <button class="tab-btn" onclick="switchRealtorTab('landlords',this)">🏠 房东信息</button>
     <button class="tab-btn" onclick="switchRealtorTab('clients',this)">👥 客户管理</button>
     <button class="tab-btn" onclick="switchRealtorTab('commission',this)">💰 佣金收入</button>
   </div>
@@ -723,9 +722,9 @@ function doGlobalSearch(q){
   const savedT=L.g('tasks_'+K(),{});getTaskDefs('realtor','daily').concat(getTaskDefs('realtor','weekly'),getTaskDefs('realtor','monthly')).forEach(t=>{
     add('📋 任务','',t.id,t.title,t.desc||t.module||'');
   });
-  ['landlords','buyers','renters'].forEach(k=>{
+  ['buyers'].forEach(k=>{
     (L.g(k,[])||[]).forEach((d,i)=>{
-      add('🏘️ 客户/房东','',k+'_'+i,(d.name||'')+' — '+((d.addr||d.phone||d.layout||'').substring(0,30)),'分类:'+(d.grade||'')+' 状态:'+(d.status||''));
+      add('🏘️ 买房客户','',k+'_'+i,(d.name||'')+' — '+((d.need||d.phone||d.budget||'').substring(0,30)),'分类:'+(d.grade||'')+' 状态:'+(d.status||''));
     });
   });
   // Content plans & topics
@@ -848,9 +847,9 @@ function renderHome(){
   // Streak
   document.getElementById('statStreak').textContent=calcStreak();
   // Realtor stats
-  const landlords=L.g('landlords',[]),buyers=L.g('buyers',[]),renters=L.g('renters',[]);
+  const buyers=L.g('buyers',[]);
   const pending=countPendingFollowups();
-  document.getElementById('homeRealtor').innerHTML=`<div style="display:flex;gap:12px;text-align:center;padding:6px"><div style="flex:1"><div style="font-size:18px;font-weight:700;color:var(--primary)">${landlords.length}</div><div style="font-size:10px;color:var(--text-secondary)">房东</div></div><div style="flex:1"><div style="font-size:18px;font-weight:700;color:var(--teal)">${buyers.length}</div><div style="font-size:10px;color:var(--text-secondary)">买房客户</div></div><div style="flex:1"><div style="font-size:18px;font-weight:700;color:var(--accent)">${renters.length}</div><div style="font-size:10px;color:var(--text-secondary)">租房客户</div></div></div>${pending>0?`<div style="text-align:center;padding:6px 0 2px"><span class="pending-badge">⏰ ${pending}人待跟进</span></div>`:''}`;
+  document.getElementById('homeRealtor').innerHTML=`<div style="display:flex;gap:12px;text-align:center;padding:6px"><div style="flex:1"><div style="font-size:18px;font-weight:700;color:var(--teal)">${buyers.length}</div><div style="font-size:10px;color:var(--text-secondary)">买房客户</div></div></div>${pending>0?`<div style="text-align:center;padding:6px 0 2px"><span class="pending-badge">⏰ ${pending}人待跟进</span></div>`:''}`;
   // Activity feed — enhanced
   const reviews=L.g('dailyReviews',[]).slice(-3).reverse();
   const workouts=L.g('workouts',[]).filter(w=>w.date===K());
@@ -895,10 +894,8 @@ function getReminders(){
   const today=K();
   const items=[];
   // 1. Client follow-up overdue
-  const allClients=[...L.g('buyers',[]),...L.g('renters',[]),...L.g('landlords',[])];
+  const allClients=[...L.g('buyers',[])];
   const fp=L.g('buyerFollowups',{});
-  const fpr=L.g('renterFollowups',{});
-  const fpl=L.g('landlordFollowups',{});
   let urgentClients=[],warnClients=[];
   allClients.forEach((c,i)=>{
     const key=c._id||(c.name+'_'+i);
@@ -1736,7 +1733,6 @@ function renderRealtor(){
   const el=document.getElementById('realtorContent');
   if(realtorTab==='roadmap')renderRoadmap(el);
   else if(realtorTab==='skills')renderSkills(el);
-  else if(realtorTab==='landlords')renderLandlords(el);
   else if(realtorTab==='clients')renderClientsTab(el);
   else if(realtorTab==='commission')renderCommission(el);
 }
@@ -1869,7 +1865,7 @@ function renderSkillDetail(){
   }
   if(activeSkill==='service'){
     extra=`<div class="card" style="background:linear-gradient(135deg,#e8f4f0,#d0e8dc);margin-bottom:10px">
-      <div class="card-title">📋 客户分类管理（已集成至买房/租房客户表）</div>
+      <div class="card-title">📋 客户分类管理（已集成至买房客户表）</div>
       <div style="font-size:11px;line-height:1.8">
         <div>🟢 <b>A类</b>（1周内可成交）→ 每天跟进，立即匹配房源</div>
         <div>🟡 <b>B类</b>（1月内）→ 每3天跟进，推送优质房源</div>
@@ -1915,50 +1911,13 @@ function renderSkillDetail(){
   el.innerHTML=`<div class="card-title">${sk.icon} ${sk.name}</div><div class="card-subtitle">${sk.desc}</div>${extra}${itemsHtml}`;
 }
 
-// Landlord / Client tables
-function renderLandlords(el){
-  const data=L.g('landlords',[]);
-  const fp=L.g('landlordFollowups',{});
-  let html='<button class="btn btn-sm" style="margin-bottom:8px" onclick="addLandlord()">+ 添加房东</button><div class="table-wrap"><table><thead><tr><th>姓名</th><th>电话</th><th>房源地址</th><th>户型</th><th>租金/售价</th><th>分类</th><th>状态</th><th>最近跟进</th><th>操作</th></tr></thead><tbody>';
-  const grades={A:'🟢 A-积极',B:'🟡 B-一般',C:'🟠 C-观望',D:'⚪ D-流失'};
-  data.forEach((d,i)=>{
-    const g=d.grade||'B',pf=parseFollowup(fp[d.name+'_'+i]);
-    let fuClass='',fuLabel=pf.content?pf.content.substring(0,20)+(pf.content.length>20?'…':''):'+ 添加跟进';
-    if(pf.days!==null){
-      if(pf.days>=7){fuClass='fu-urgent';fuLabel=`⚠️ ${pf.days}天未跟进`;}
-      else if(pf.days>=3){fuClass='fu-warning';fuLabel=`⏰ ${pf.days}天前`;}
-      else{fuClass='fu-ok';fuLabel=`${pf.days}天前跟进`;}
-    }
-    html+=`<tr><td data-label="姓名">${d.name||''}</td><td data-label="电话">${d.phone||''}</td><td data-label="地址">${d.addr||''}</td><td data-label="户型">${d.layout||''}</td><td data-label="租金/售价">${d.price||''}</td><td data-label="分类"><select class="status-select" onchange="updateClientGrade('landlords',${i},this.value)">${Object.entries(grades).map(([k,v])=>`<option ${g===k?'selected':''} value="${k}">${v}</option>`).join('')}</select></td><td data-label="状态"><span class="tag tag-${d.status==='已委托'?'green':d.status==='沟通中'?'orange':'gray'}">${d.status||'新接触'}</span></td><td data-label="最近跟进" class="${fuClass}" style="cursor:pointer" onclick="openFollowupModal('landlords',${i},'${d.name}')">${fuLabel}</td><td data-label="操作" class="t-actions"><button class="btn btn-sm btn-secondary" onclick="delLandlord(${i})">删除</button></td></tr>`;
-  });
-  html+='</tbody></table></div>';
-  if(!data.length)html+='<div class="empty"><div class="empty-icon">🏘️</div>暂无房东信息</div>';
-  el.innerHTML=html;
-}
-function addLandlord(){
-  const html='<div class="modal-overlay" onclick="if(event.target===this)closeM()"><div class="modal"><div class="modal-title">+ 添加房东</div>'
-    +'<div class="form-row"><div class="form-group"><label>姓名</label><input class="input" id="loName"></div><div class="form-group"><label>电话</label><input class="input" id="loPhone"></div></div>'
-    +'<div class="form-row"><div class="form-group"><label>房源地址</label><input class="input" id="loAddr"></div><div class="form-group"><label>户型</label><input class="input" id="loLayout"></div></div>'
-    +'<div class="form-row"><div class="form-group"><label>租金/售价</label><input class="input" id="loPrice"></div><div class="form-group"><label>状态</label><select class="select" id="loStatus"><option>新接触</option><option>沟通中</option><option>已委托</option></select></div></div>'
-    +'<div class="form-group"><label>备注</label><input class="input" id="loNote"></div>'
-    +'<div class="modal-footer"><button class="btn btn-secondary" onclick="closeM()">取消</button><button class="btn" onclick="saveLandlord()">保存</button></div></div></div>';
-  document.body.insertAdjacentHTML('beforeend',html);
-}
-function saveLandlord(){
-  const n=document.getElementById('loName').value;if(!n){T('请填写姓名');return;}
-  const data=L.g('landlords',[]);
-  data.push({name:n,phone:document.getElementById('loPhone').value,addr:document.getElementById('loAddr').value,layout:document.getElementById('loLayout').value,price:document.getElementById('loPrice').value,status:document.getElementById('loStatus').value,note:document.getElementById('loNote').value});
-  L.s('landlords',data);closeM();renderRealtor();T('房东已添加');
-}
-function delLandlord(i){showConfirm('确认删除这个房东？',()=>{const d=L.g('landlords',[]);d.splice(i,1);L.s('landlords',d);renderRealtor();T('已删除');});}
+// Client table
 let clientType='buyers';
 function renderClientsTab(el){
-  const types=[{k:'buyers',n:'买房客户',icon:'🏠'},{k:'renters',n:'租房客户',icon:'🔑'}];
-  let html=`<div style="display:flex;gap:6px;margin-bottom:10px">`;
-  types.forEach(t=>{html+=`<span class="chip ${clientType===t.k?'active':''}" style="cursor:pointer;font-size:11px" onclick="switchClientType('${t.k}')">${t.icon} ${t.n}</span>`;});
-  html+=`</div><div id="clientSubContent"></div>`;
+  const title='买房客户';
+  const html=`<div style="margin-bottom:10px;font-size:12px;font-weight:600;color:var(--text-secondary)">🏠 ${title}</div><div id="clientSubContent"></div>`;
   el.innerHTML=html;
-  renderClients(document.getElementById('clientSubContent'),clientType,types.find(t=>t.k===clientType).n);
+  renderClients(document.getElementById('clientSubContent'),clientType,title);
 }
 function switchClientType(k){clientType=k;renderRealtor();}
 function renderClients(el,key,title){
@@ -1982,7 +1941,7 @@ function renderClients(el,key,title){
   el.innerHTML=html;
 }
 function addClient(key){
-  const title=key==='buyers'?'买房客户':'租房客户';
+  const title='买房客户';
   const html='<div class="modal-overlay" onclick="if(event.target===this)closeM()"><div class="modal"><div class="modal-title">+ 添加'+title+'</div>'
     +'<div class="form-row"><div class="form-group"><label>姓名</label><input class="input" id="clName"></div><div class="form-group"><label>电话</label><input class="input" id="clPhone"></div></div>'
     +'<div class="form-row"><div class="form-group"><label>需求</label><input class="input" id="clNeed"></div><div class="form-group"><label>预算</label><input class="input" id="clBudget"></div></div>'
@@ -2037,7 +1996,7 @@ function parseFollowup(fu){
 // Count pending follow-ups (>3 days, only for clients with data)
 function countPendingFollowups(){
   let count=0;
-  ['landlords','buyers','renters'].forEach(key=>{
+  ['buyers'].forEach(key=>{
     const data=L.g(key,[]),fp=L.g(key+'_followups',{});
     data.forEach((d,i)=>{
       const pf=parseFollowup(fp[d.name+'_'+i]);
@@ -3404,7 +3363,7 @@ function shareReport(){
 }
 function renderAch(){
   const xp=L.g('xp',0);
-  const badges=[{id:'a1',icon:'📅',name:'一周连续打卡',desc:'连续7天完成每日任务',req:()=>calcStreak()>=7},{id:'a2',icon:'🎯',name:'任务达人',desc:'累计完成100个任务',req:()=>xp>=300},{id:'a3',icon:'🏘️',name:'经纪人起步',desc:'添加5位客户/房东',req:()=>L.g('landlords',[]).length+L.g('buyers',[]).length+L.g('renters',[]).length>=5},{id:'a4',icon:'📱',name:'内容创作者',desc:'发布并复盘10条视频',req:()=>L.g('contentReviews',[]).length>=10},{id:'a5',icon:'🏋️',name:'健身新星',desc:'累计跟练20次',req:()=>L.g('workouts',[]).length>=20},{id:'a6',icon:'📝',name:'复盘达人',desc:'累计写30篇日报',req:()=>L.g('dailyReviews',[]).length>=30},{id:'a7',icon:'💪',name:'变瘦了',desc:'体重从51kg降到45kg以下',req:()=>(L.g('measurements',[]).filter(m=>parseFloat(m.weight)<=45).length>0)},{id:'a8',icon:'🌟',name:'高级经纪人',desc:'达到Lv.10',req:()=>levelFromXP(xp)>=10}];
+  const badges=[{id:'a1',icon:'📅',name:'一周连续打卡',desc:'连续7天完成每日任务',req:()=>calcStreak()>=7},{id:'a2',icon:'🎯',name:'任务达人',desc:'累计完成100个任务',req:()=>xp>=300},{id:'a3',icon:'🏘️',name:'经纪人起步',desc:'添加5位买房客户',req:()=>L.g('buyers',[]).length>=5},{id:'a4',icon:'📱',name:'内容创作者',desc:'发布并复盘10条视频',req:()=>L.g('contentReviews',[]).length>=10},{id:'a5',icon:'🏋️',name:'健身新星',desc:'累计跟练20次',req:()=>L.g('workouts',[]).length>=20},{id:'a6',icon:'📝',name:'复盘达人',desc:'累计写30篇日报',req:()=>L.g('dailyReviews',[]).length>=30},{id:'a7',icon:'💪',name:'变瘦了',desc:'体重从51kg降到45kg以下',req:()=>(L.g('measurements',[]).filter(m=>parseFloat(m.weight)<=45).length>0)},{id:'a8',icon:'🌟',name:'高级经纪人',desc:'达到Lv.10',req:()=>levelFromXP(xp)>=10}];
   const prevUnlocked=L.g('achUnlocked',[]);
   const newlyUnlocked=[];
   document.getElementById('achGrid').innerHTML=badges.map(b=>{
@@ -3646,9 +3605,7 @@ function renderSettings(){
     {l:'创意灵感',k:'creative'},
     {l:'内容复盘',k:'contentReviews'},
     {l:'选题库',k:'topics'},
-    {l:'房东信息',k:'landlords'},
     {l:'买房客户',k:'buyers'},
-    {l:'租房客户',k:'renters'},
     {l:'激励成就',k:'customRewards'},
     {l:'健身记录',k:'fitness_logs'},
     {l:'任务完成',k:'completedTasks'},
@@ -3802,7 +3759,7 @@ function showRecoveryModal(){
       
       html+='<div style="font-size:12px;font-weight:600;margin-bottom:6px">备份中的数据模块：</div>';
       html+='<div style="max-height:200px;overflow-y:auto;margin-bottom:12px;font-size:10px;line-height:1.8;background:var(--bg);border-radius:8px;padding:8px">';
-      var labels={xp:'经验值(XP)',xpLog:'XP记录',tasks:'今日任务',taskDefs_day:'每日任务模板',taskDefs_week:'每周任务模板',taskDefs_month:'每月任务模板',taskDefs_habits:'习惯打卡',reviews:'复盘记录',clients:'客户信息',landlords:'房东信息',workoutLog:'健身记录',workoutDB:'健身跟练库',bloggers:'博主列表',bloggerVideos:'博主视频',measurements:'身体数据',customRewards:'自定义激励',negotiationSkills:'谈判技巧',userAvatar:'头像设置',dashboardLayout:'首页布局'};
+      var labels={xp:'经验值(XP)',xpLog:'XP记录',tasks:'今日任务',taskDefs_day:'每日任务模板',taskDefs_week:'每周任务模板',taskDefs_month:'每月任务模板',taskDefs_habits:'习惯打卡',reviews:'复盘记录',clients:'客户信息',workoutLog:'健身记录',workoutDB:'健身跟练库',bloggers:'博主列表',bloggerVideos:'博主视频',measurements:'身体数据',customRewards:'自定义激励',negotiationSkills:'谈判技巧',userAvatar:'头像设置',dashboardLayout:'首页布局'};
       for(var j=0;j<keys.length;j++){
         var k2=keys[j];
         var label=labels[k2]||k2;
