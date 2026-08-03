@@ -305,8 +305,8 @@ th{background:#eef5f8;font-weight:600;color:var(--text-secondary);font-size:10px
 <body>
 <script>
 // v7.9 版本自检：自动清除旧缓存，安全升级（不丢失数据）
+var BUILD='v7.9-20260802d';
 (function(){
-  var BUILD='v7.9-20260802d';
   var last=localStorage.getItem('_buildVer');
   if(last===BUILD) return;
   // 版本更新前自动备份数据快照
